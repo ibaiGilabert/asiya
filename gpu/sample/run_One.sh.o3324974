@@ -1,0 +1,2 @@
+/home/usuaris/gilabert/asiya/gpu//bin/Asiya.pl
+Asiya.pl Asiya.config -v -eval single -metric_set metric_GTM -data_path /home/usuaris/gilabert/asiya/gpu/sample > GTM.report

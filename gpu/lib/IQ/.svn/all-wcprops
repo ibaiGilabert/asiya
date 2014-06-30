@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ
+END
+AsiyaAPI.pm
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/AsiyaAPI.pm
+END
+LGPL.txt
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/LGPL.txt
+END
+Config.pm
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Config.pm
+END
+Common.pm
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Common.pm
+END

@@ -1,0 +1,44 @@
+------------------------------------------------------------------------------------------------------------------------
+ASIYA v3.0
+(C) 2014. TALP, Technical University of Catalonia (written by Meritxell Gonzalez, Jesus Gimenez)
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+CONFIGURATION OPTIONS
+------------------------------------------------------------------------------------------------------------------------
+language pair = (1, case sensitive) -> (1, case sensitive)
+------------------------------------------------------------------------------------------------------------------------
+input format = raw
+output format = mmatrix
+granularity = sys
+------------------------------------------------------------------------------------------------------------------------
+system_set = { apertium.txt, babelfish.txt, bing.txt, google.txt, reverso.txt, systran.txt }
+reference_set = { ref.txt }
+metric_set = { GTM-1, GTM-2, GTM-3 }
+------------------------------------------------------------------------------------------------------------------------
+[METRICS] computing 'system vs. reference' scores (one vs. all)...
+apertium.txt - ref.txt [GTM..Picked up _JAVA_OPTIONS: -Xmx2048M
+Picked up _JAVA_OPTIONS: -Xmx2048M
+Picked up _JAVA_OPTIONS: -Xmx2048M
+]
+babelfish.txt - ref.txt [GTM..Picked up _JAVA_OPTIONS: -Xmx2048M
+Picked up _JAVA_OPTIONS: -Xmx2048M
+Picked up _JAVA_OPTIONS: -Xmx2048M
+]
+bing.txt - ref.txt [GTM..Picked up _JAVA_OPTIONS: -Xmx2048M
+Picked up _JAVA_OPTIONS: -Xmx2048M
+Picked up _JAVA_OPTIONS: -Xmx2048M
+]
+google.txt - ref.txt [GTM..Picked up _JAVA_OPTIONS: -Xmx2048M
+Picked up _JAVA_OPTIONS: -Xmx2048M
+Picked up _JAVA_OPTIONS: -Xmx2048M
+]
+reverso.txt - ref.txt [GTM..Picked up _JAVA_OPTIONS: -Xmx2048M
+Picked up _JAVA_OPTIONS: -Xmx2048M
+Picked up _JAVA_OPTIONS: -Xmx2048M
+]
+systran.txt - ref.txt [GTM..Picked up _JAVA_OPTIONS: -Xmx2048M
+Picked up _JAVA_OPTIONS: -Xmx2048M
+Picked up _JAVA_OPTIONS: -Xmx2048M
+]
+Printing evaluation report...
+[FINISHED]

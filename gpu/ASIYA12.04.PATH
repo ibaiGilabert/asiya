@@ -1,0 +1,100 @@
+
+alias ll='ls -l'
+alias la='ls -A'
+alias l='ls -CF'
+
+# VARIABLES ASIYA
+
+#PERL_CPANM_OPT="--local-lib=/home/usuaris/emt/asiya/perl5"
+#export PERL_CPANM_OPT
+         
+ASIYA_HOME=/home/usuaris/gilabert/asiya/gpu/
+export ASIYA_HOME
+               
+#PERL5LIB=/usr/local/lib/perl/5.10.1:$PERL5LIB
+#PERL5LIB=
+#PERL5LIB=/home/usuaris/emt/asiya/perl5:$PERL5LIB
+#PERL5LIB=/home/usuaris/emt/asiya/perl5/lib/perl5:$PERL5LIB
+#PERL5LIB=/home/usuaris/emt/asiya/perl5lib:$PERL5LIB
+#PERL5LIB=/home/usuaris/emt/asiya/perl5lib/lib/perl5:$PERL5LIB
+#PERL5LIB=/home/usuaris/emt/asiya/public/lib:$PERL5LIB
+#PERL5LIB=/home/usuaris/emt/asiya/public/tools:$PERL5LIB
+#PERL5LIB=/home/usuaris/emt/asiya/perl5/lib/perl5/x86_64-linux-gnu-thread-multi:/home/usuaris/emt/asiya/perl5/lib/perl5:$PERL5LIB
+#PERL5LIB=/home/usuaris/emt/asiya/public/tools/svmtool-1.3.1/lib:$PERL5LIB
+#PERL5LIB=/home/usuaris/mgonzalez/SOFT/expat-2.1.0:/home/usuaris/mgonzalez/SOFT/expat-2.1.0/lib:$PERL5LIB
+#export PERL5LIB
+                                 
+#PERL_LOCAL_LIB_ROOT=/home/usuaris/emt/asiya/perl5
+#export PERL_LOCAL_LIB_ROOT
+                                       
+#PERL_MB_OPT=--install_base\ /home/usuaris/emt/asiya/perl5
+#export PERL_MB_OPT
+                                             
+#PERL_MM_OPT=INSTALL_BASE=/home/usuaris/emt/asiya/perl5
+#export PERL_MM_OPT
+
+MINIPATH=/home/soft/asiya/tools/minipar/data
+export MINIPATH   
+
+# la llibreria stdlib++5 és necessària per a minipar
+
+PATH=/home/usuaris/gilabert/asiya/gpu:$PATH
+#PATH=/home/usuaris/emt/asiya/perl5/bin:$PATH
+#PATH=/home/usuaris/emt/asiya/perl5lib/bin:$PATH
+PATH=/home/soft/asiya/tools/svmtool-1.3.1/bin:$PATH
+PATH=$PATH:/home/soft/asiya/tools/minipar/pdemo
+export PATH
+                                                                              
+
+export LD_LIBRARY_PATH=/usr/local/lib/:/usr/lib/R/library/tcltk:$LD_LIBRARY_PATH
+export LD_RUN_PATH=/usr/local/lib/:/usr/lib/R/library/tcltk:$LD_RUN_PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/usuaris/emt/wordnet-3.0/include/
+export LD_RUN_PATH=$LD_RUN_PATH:/home/usuaris/emt/wordnet-3.0/include/
+
+
+#export TK_LIBRARY=/usr/lib/R/library/tcltk
+
+
+#ASIYA-devel
+export ASIYA_FOLDER=$ASIYA_HOME
+#export SVMTool_FOLDER=$ASIYA_HOME/tools/svmtool.1.3.1/
+export SVMTool_FOLDER=/home/soft/asiya/tools/svmtool.1.3.1/
+export PATH=$PATH:$ASIYA_FOLDER/bin
+#export PERL5LIB=$ASIYA_FOLDER/lib:$PERL5LIB
+
+#srilm-1.5.10
+SRILM=/home/usuaris/emt/srilm/devel
+export PATH=$PATH:$SRILM/bin/i686-m64
+export PATH=$PATH:$SRILM/bin
+export MANPATH=$MANPATH:$SRILM/man
+
+#WORDNET
+export WNHOME=/home/usuaris/emt/wordnet-3.0
+export WNDICT=/home/usuaris/emt/wordnet-3.0/dict
+export PATH=$PATH:/home/usuaris/emt/wordnet-3.0/bin
+
+#export GCCFLAGS="-march=opteron -m64"
+#export CFLAGS="-march=opteron -m64"
+#export CXXFLAGS="-march=opteron -m64"
+#export LDFLAGS="-march=opteron -m64"
+
+#PETSC i TAO
+export TAO_DIR=/usr/local/share/tao
+export PETSC_DIR=/home/usuaris/emt/asiya/petsc-3.3-p3
+export PETSC_ARCH=arch-linux2-cxx-debug
+#export BOPT=O_c++
+
+
+#FRENCH PARSING WITH BONSAI & TAGGING WITH MELTTAGGER
+export BONSAI=/home/soft/asiya/tools/bonsai_v3.2
+export MALT_BONSAI_DIR=/home/soft/asiya/tools/malt-1.3.1
+export MALT_DIR=/home/soft/asiya/tools/malt-1.7.2
+export PYTHONPATH=/usr/local/lib/python2.7/site-packages
+
+#GERMAN PARSING WITH BERKELEY
+export BKY_PARSER=/home/soft/asiya/tools/berkeleyparser
+export PATH=$BKY_PARSER:$PATH
+export CLASSPATH=$BKY_PARSER:$CLASSPATH 
+
+#BERKELEY PATH
+export BERKELEY_PATH=/home/usuaris/mgonzalez/berkeleyaligner

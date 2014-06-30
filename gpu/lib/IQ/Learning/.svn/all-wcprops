@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Learning
+END
+LGPL.txt
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Learning/LGPL.txt
+END
+Perceptron.pm
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Learning/Perceptron.pm
+END
+Learner.pm
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Learning/Learner.pm
+END

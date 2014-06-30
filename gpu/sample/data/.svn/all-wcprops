@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/subversion/asiya/!svn/ver/1460/gpu/sample/data
+END
+babelfish.txt
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/subversion/asiya/!svn/ver/1460/gpu/sample/data/babelfish.txt
+END
+bing.txt
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/subversion/asiya/!svn/ver/1460/gpu/sample/data/bing.txt
+END
+src-emtpy.txt
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/subversion/asiya/!svn/ver/1460/gpu/sample/data/src-emtpy.txt
+END
+systran.txt
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/subversion/asiya/!svn/ver/1460/gpu/sample/data/systran.txt
+END
+reverso.txt
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/subversion/asiya/!svn/ver/1460/gpu/sample/data/reverso.txt
+END
+apertium.txt
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/subversion/asiya/!svn/ver/1460/gpu/sample/data/apertium.txt
+END
+src.txt
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/subversion/asiya/!svn/ver/1460/gpu/sample/data/src.txt
+END
+google.txt
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/subversion/asiya/!svn/ver/1460/gpu/sample/data/google.txt
+END
+ref.txt
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/subversion/asiya/!svn/ver/1460/gpu/sample/data/ref.txt
+END

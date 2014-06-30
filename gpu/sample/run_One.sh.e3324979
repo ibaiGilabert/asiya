@@ -1,0 +1,20 @@
+------------------------------------------------------------------------------------------------------------------------
+ASIYA v3.0
+(C) 2014. TALP, Technical University of Catalonia (written by Meritxell Gonzalez, Jesus Gimenez)
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+CONFIGURATION OPTIONS
+------------------------------------------------------------------------------------------------------------------------
+language pair = (1, case sensitive) -> (1, case sensitive)
+------------------------------------------------------------------------------------------------------------------------
+input format = raw
+output format = mmatrix
+granularity = sys
+------------------------------------------------------------------------------------------------------------------------
+system_set = { apertium.txt, babelfish.txt, bing.txt, google.txt, reverso.txt, systran.txt }
+reference_set = { ref.txt }
+metric_set = { CE-BiDictA, CE-BiDictO, CE-Nc, CE-Ne, CE-Oc, CE-Oe, CE-Op, CE-ippl, CE-ipplC, CE-ipplP, CE-length, CE-logp, CE-logpC, CE-logpP, CE-long, CE-oov, CE-short, CE-srcippl, CE-srcipplC, CE-srcipplP, CE-srclen, CE-srclogp, CE-srclogpC, CE-srclogpP, CE-srcoov, CE-symbols }
+------------------------------------------------------------------------------------------------------------------------
+[METRICS] computing 'system vs. reference' scores (one vs. all)...
+apertium.txt - ref.txt [CE..[ERROR] SRILM - language modeling toolkit not available!!
+ngram -lm /home/soft/asiya/tools/srilm/es/cs/europarl-v5.lm -debug 1 -ppl ./data/src.txt.tok > ./data/src.txt.tok.LM.1341.80223642947 2> /dev/null

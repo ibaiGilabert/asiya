@@ -1,0 +1,744 @@
+package Config;
+
+# ------------------------------------------------------------------------
+
+#Copyright (C) Jesus Gimenez
+
+#This library is free software; you can redistribute it and/or
+#modify it under the terms of the GNU Lesser General Public
+#License as published by the Free Software Foundation; either
+#version 2.1 of the License, or (at your option) any later version.
+
+#This library is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#Lesser General Public License for more details.
+
+#You should have received a copy of the GNU Lesser General Public
+#License along with this library; if not, write to the Free Software
+#Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+# ------------------------------------------------------------------------
+
+use Modern::Perl;
+use Data::Dumper;
+use Data::UUID;
+use File::Basename;
+use File::Copy;
+use IQ::Common;
+use IQ::InOut::NISTXML;
+use IQ::Scoring::Metrics;
+use IQ::MetaScoring::Assessments;
+use IQ::InOut::TeX;
+
+sub set_output_format {
+    #description _ set/update output format 
+    #param1  _ configuration structure
+    #param2  _ format
+
+    my $CONFIG = shift;
+    my $format = shift;
+
+    $CONFIG->{O} = $format;
+}
+
+sub set_metrics {
+    #description _ set/update the metric set 
+    #param1  _ configuration structure
+    #param2  _ metric list ref
+
+    my $CONFIG = shift;
+    my $metrics = shift;
+
+    foreach my $metric (@{$metrics}) { $CONFIG->{Hmetrics}->{$metric} = 1; }
+    $CONFIG->{metrics} = $metrics;
+}
+
+# *************************************************************************************
+# *************************************************************************************
+
+sub process_nist_file {
+    #description _ read the contents of a NIST xml and generate txt and idx files
+    #              (idx structure is also stored onto memory)
+    #param1  _ configuration structure
+    #param2  _ input file
+    #param3  _ file type (source|references|systems)
+
+    my $CONFIG = shift;
+    my $file = shift;
+    my $type = shift;
+
+    my $contents = NISTXML::read_file($file, $CONFIG->{tools}, $CONFIG->{verbose}, $CONFIG->{tokenize}, $CONFIG->{remake});
+    foreach my $c (sort keys %{$contents}) {                  
+       if (($type eq "source") or ($type eq "src")) {
+          $CONFIG->{src} = $contents->{$c}->{txt};
+          $CONFIG->{IDX}->{"source"} = $contents->{$c}->{idx};
+          $CONFIG->{wc}->{"source"} = $contents->{$c}->{wc};
+       }
+       elsif (($type eq "reference") or ($type eq "ref")) {
+          if (exists($CONFIG->{Hrefs}->{$c})) { die "[ERROR] reference name '$c' duplicated!!\n"; }
+          $CONFIG->{Hrefs}->{$c} = $contents->{$c}->{txt};
+          $CONFIG->{IDX}->{$c} = $contents->{$c}->{idx};
+          $CONFIG->{wc}->{$c} = $contents->{$c}->{wc};
+       }
+       elsif (($type eq "system") or ($type eq "sys")) {
+          if (exists($CONFIG->{Hsystems}->{$c})) { die "[ERROR] system name '$c' duplicated!!\n"; }
+          $CONFIG->{Hsystems}->{$c} = $contents->{$c}->{txt};
+          $CONFIG->{IDX}->{$c} = $contents->{$c}->{idx};
+          $CONFIG->{wc}->{$c} = $contents->{$c}->{wc};
+       }
+       else { die "[ERROR] unkown file type <$type>!!\n"; }           
+    }
+}
+
+sub process_raw_file {
+    #description _ read the contents of a RAW plain text file (one sentence per line) and generate fake idx files
+    #              (idx structure is also stored onto memory)
+    #param1  _ configuration structure
+    #param2  _ input file
+    #param3  _ file type (source|references|systems)
+
+    my $CONFIG = shift;
+    my $file = shift;
+    my $type = shift;
+
+    my $rIDX;
+    my $IDX = $file.".$Common::IDXEXT";   
+
+#    if (-e $IDX && !($CONFIG->{remake})) { $rIDX = NISTXML::read_idx_file($IDX, $CONFIG->{verbose}); }
+#    else { 
+      $rIDX = NISTXML::write_fake_idx_file($file, $IDX, $CONFIG->{verbose}); 
+#    }
+
+    my $tokfile = $file.".".$Common::TOKEXT;
+    
+    my $lang;
+    if (($type eq "source") or ($type eq "src")) {
+       $CONFIG->{src} = $tokfile;
+       $CONFIG->{IDX}->{"source"} = $rIDX;
+       $CONFIG->{wc}->{"source"} = scalar(@{$rIDX})-1;
+       $lang = $CONFIG->{SRCLANG};
+    }
+    elsif (($type eq "reference") or ($type eq "ref")) {
+       my $R = Common::give_system_name($file);
+       $CONFIG->{IDX}->{$R} = $rIDX;
+       if (exists($CONFIG->{Hrefs}->{$R})) { die "[ERROR] reference name '$R' duplicated!!\n"; }
+       $CONFIG->{wc}->{$R} = scalar(@{$rIDX})-1;
+       $CONFIG->{Hrefs}->{$R} = $tokfile;
+       $lang = $CONFIG->{LANG};
+    }
+    elsif (($type eq "system") or ($type eq "sys")) {
+       my $S = Common::give_system_name($file);
+       $CONFIG->{IDX}->{$S} = $rIDX;
+       if (exists($CONFIG->{Hsystems}->{$S})) { die "[ERROR] system name '$S' duplicated!!\n"; }
+       $CONFIG->{wc}->{$S} = scalar(@{$rIDX})-1;
+       $CONFIG->{Hsystems}->{$S} = $tokfile;
+       $lang = $CONFIG->{LANG};
+    }
+    else { die "[ERROR] unkown file type <$type>!!\n"; }           
+
+#    if (!(-e $tokfile) or $CONFIG->{remake} ) {
+       Common::execute_or_die("cp -f $file $tokfile", "[ERROR] could not copy $file into $tokfile");
+       if ( $CONFIG->{tokenize} ){
+          my $l = $lang;
+          if (exists($SP::rLANGTOK->{$lang})) { $l = $SP::rLANGTOK->{$lang};}
+          SP::tokenize_file($CONFIG->{tools}, $tokfile, $l);
+       }
+#    }
+}
+
+sub default_config {
+    #description _ creates a default configuration (~will end being the class constructor)
+
+    my %CONFIG;
+  
+    my $ug = new Data::UUID;
+    $CONFIG{testbedid} = $ug->create_str();
+    $CONFIG{IQ_config} = "";
+    $CONFIG{verbose} = 0;
+    $CONFIG{debug} = 0;
+    $CONFIG{tsearch} = 0;
+    $CONFIG{tokenize} = $Common::tokenize;
+    $CONFIG{do_metric_names} = 0;    
+    $CONFIG{do_system_names} = 0;    
+    $CONFIG{do_reference_names} = 0;
+    $CONFIG{do_refs} = 0;
+    $CONFIG{G} = $Common::G_DEFAULT;
+    $CONFIG{I} = $Common::I_DEFAULT;
+    $CONFIG{O} = $Common::O_DEFAULT;
+    $CONFIG{O_STORAGE} = 1;
+    $CONFIG{TEX} = 0;
+    $CONFIG{TEX_table_count} = 0;
+    $CONFIG{TEX_font_size} = TeX::get_font_size($Common::FS_DEFAULT);
+    $CONFIG{SORT} = $Common::SORT_DEFAULT;
+    $CONFIG{SRCLANG} = $Common::L_DEFAULT;
+    $CONFIG{LANG} = $Common::L_DEFAULT;
+    $CONFIG{SRCCASE} = $Common::CASE_DEFAULT;
+    $CONFIG{CASE} = $Common::CASE_DEFAULT;
+    $CONFIG{alfa} = $Common::ALFA_DEFAULT;
+    $CONFIG{ci} = $Common::CI_DEFAULT;
+    $CONFIG{n_resamplings} = $Common::N_RESAMPLINGS_DEFAULT;
+    $CONFIG{float_length} = $Common::FLOAT_LENGTH_DEFAULT;
+    $CONFIG{float_precision} = $Common::FLOAT_PRECISION_DEFAULT;
+    $CONFIG{references} = [];
+    $CONFIG{systems} = [];
+    $CONFIG{metrics} = [];
+    $CONFIG{segments} = {};
+    $CONFIG{alignments} = 0;
+    $CONFIG{learn_scheme} = "";
+    $CONFIG{n_epochs} = $Common::N_EPOCHS_DEFAULT;
+    $CONFIG{min_dist} = $Common::MIN_DIST_DEFAULT;
+    $CONFIG{train_prop} = $Common::TRAINING_PROPORTION_DEFAULT;
+    $CONFIG{model} = $Common::MODEL_DEFAULT;
+
+    if (exists($ENV{ASIYA_HOME})) { $CONFIG{PATH} = $ENV{ASIYA_HOME}; }
+
+    return \%CONFIG;
+}
+
+sub read_selection($) {
+    #description _ reads segment selection string (e.g., "segments=1-8,20,26,30-105") into a list
+    #param1  _ segment selection string
+    #@return _ segment hash ref
+    
+    my $testcases = shift;
+
+    my %segments;
+    my @range_list = split(/,/, $testcases);
+    foreach my $range (@range_list) {
+       my @subrange = split("-", $range);
+       if (scalar(@subrange == 1)) {
+       	  if ($subrange[0] > 0) { $segments{$subrange[0]} = 1; }
+       	  else { die "[ERROR] wrong segment number (n=", $subrange[0], ")!! (segment numbers start at 1)\n"; }
+       }
+       elsif (scalar(@subrange == 2)) {
+       	  if ($subrange[0] > 0) {
+             my $i = $subrange[0];
+             while ($i <= $subrange[1]) { $segments{$i} = 1; $i++; }
+       	  }
+       	  else { die "[ERROR] wrong segment number (n=", $subrange[0], ")!! (segment numbers start at 1)\n"; }
+       }
+       else { die "[ERROR] invalid segment range!!\n"; }
+    }
+
+    return \%segments;
+}
+
+sub process_config_file {
+    #description _ process configuration file
+    #param1  _ configuration file
+    #param2  _ verbosity
+    #@return _ configuration structure (hash ref)
+
+    my $IQ_config = shift;
+    my $options = shift;
+
+    my $CONFIG = default_config();
+    my $METRICS = "";
+    my $SYSTEMS = "";
+    my $REFERENCES = "";
+    my $SEGMENTS = "";
+
+    if (defined($options->{"metric_set"})) { $METRICS = $options->{"metric_set"}; }
+    if (defined($options->{"system_set"})) { $SYSTEMS = $options->{"system_set"}; }
+    if (defined($options->{"reference_set"})) { $REFERENCES = $options->{"reference_set"}; }
+    if (defined($options->{"test_cases"})) { $SEGMENTS = $options->{"test_cases"}; }
+    if (defined($options->{"no_tok"})) { $CONFIG->{tokenize} = 0; }
+    if (defined($options->{"remake"})) { $CONFIG->{remake} = 1; }      
+    if (defined($options->{"data_path"})) { $options->{"data_path"} =~ s/\/\s*$//; $Common::DATA_PATH = $options->{"data_path"}; }
+
+
+#    my $TOOLS = $CONFIG->{PATH}."/$Common::TOOLS";
+    my $TOOLS = "/home/soft/asiya/tools";
+    $TOOLS =~ s/\/+/\//g;
+    if (!(-d $TOOLS)) { die "[$Common::appNAME] directory <$TOOLS> does not exist!\n"; }
+    $CONFIG->{tools} = $TOOLS;
+
+    if (!(-d "$Common::DATA_PATH/$Common::TMP")) { system "mkdir $Common::DATA_PATH/$Common::TMP"; } #TEMPORARY DIRECTORY
+
+    if ($CONFIG->{verbose}) { print STDERR "[$Common::appNAME] READING IQsetup config file <$IQ_config>..."; }
+
+    if (!(-e $IQ_config)) { die "[$Common::appNAME] config file <$IQ_config> does not exist!\n"; }
+    else{ $CONFIG->{IQ_config} = $IQ_config;}
+
+    # -- read input mode
+    open(QF, "<$IQ_config") or die "couldn't open file: $IQ_config\n";
+    while (my $line = <QF>) { # READING INPUT MODE
+       if ($line =~ /^[^#].*=.*/) {
+          chomp($line);
+          my @entry = split(/ *= */, $line);
+          if (lc($entry[0]) eq "input") {
+             if (lc($entry[1]) eq $Common::I_NIST) { $CONFIG->{I} = $Common::I_NIST; }
+             else { $CONFIG->{I} = $Common::I_RAW; }
+          }
+       }
+    }
+    close(QF);
+
+    # -- read whole config
+    open(QF, "<$IQ_config") or die "couldn't open file: $IQ_config\n";
+    while (my $line = <QF>) {
+       if ($line =~ /^[^#].*=.*/) {
+          chomp($line);
+          my @entry = split(/ *= */, $line);
+          my $type = lc($entry[0]);
+          if (($type eq "source") or ($type eq "src") or
+              ($type eq "reference") or ($type eq "ref") or
+              ($type eq "system") or ($type eq "sys")) {           
+             my $file = $entry[1];
+             if ($CONFIG->{I} eq $Common::I_NIST) { #NIST SGM/XML INPUT
+                process_nist_file($CONFIG, $file, $type);
+             }
+             else { #RAW INPUT
+                process_raw_file($CONFIG, $file, $type);
+             }
+          }
+          elsif ($type eq "srclang") {
+             if (exists($Common::rLANGS->{lc($entry[1])})) { $CONFIG->{SRCLANG} = lc($entry[1]); }
+             else { die "[ERROR] UNSUPPORTED SOURCE LANGUAGE ('".lc($entry[1])."')!!\n"; }
+          }
+          elsif (($type eq "lang") or ($type eq "trglang")) {
+             if (exists($Common::rLANGS->{lc($entry[1])})) { $CONFIG->{LANG} = lc($entry[1]); }
+             else { die "[ERROR] UNSUPPORTED TARGET LANGUAGE ('".lc($entry[1])."')!!\n"; }
+          }
+          elsif ($type eq "srccase") {
+             if (lc($entry[1]) eq $Common::CASE_CI) { $CONFIG->{SRCCASE} = $Common::CASE_CI; }
+             else { $CONFIG->{SRCCASE} = $Common::CASE_CS; }
+          }
+          elsif (($type eq "trgcase") or ($type eq "case")) {
+             if (lc($entry[1]) eq $Common::CASE_CI) { $CONFIG->{CASE} = $Common::CASE_CI; }
+             else { $CONFIG->{CASE} = $Common::CASE_CS; }
+          }
+          elsif ($entry[0] eq $METRICS) {
+             my @metrics = split(" ", $entry[1]);
+             my @l = @{$CONFIG->{metrics}};
+             foreach my $m (@metrics) {
+             	if (!exists($CONFIG->{Hmetrics}->{$m})) { $CONFIG->{Hmetrics}->{$m} = 1; push(@l, $m); }
+             }
+             $CONFIG->{metrics} = \@l;
+          }
+          elsif ($entry[0] eq $SYSTEMS) {
+             my @systems = split(" ", $entry[1]);
+             my %h = map { $_, 1 } @{$CONFIG->{systems}};
+             my @l = @{$CONFIG->{systems}};
+             foreach my $elem (@systems) {
+             	if (!exists($h{$elem})) { $h{$elem} = 1; push(@l, $elem); }
+             }
+             $CONFIG->{systems} = \@l;
+          }
+          elsif ($entry[0] eq $REFERENCES) {
+             my @references = split(" ", $entry[1]);
+             my %h = map { $_, 1 } @{$CONFIG->{references}};
+             my @l = @{$CONFIG->{references}};
+             foreach my $elem (@references) {
+                if (!exists($h{$elem})) { $h{$elem} = 1; push(@l, $elem); }
+             }
+             $CONFIG->{references} = \@l;
+          }
+          elsif ($entry[0] eq $SEGMENTS) {
+             my %h = (%{$CONFIG->{segments}}, %{read_selection($options->{"t"})});
+             $CONFIG->{segments} = \%h;
+          }
+       }
+    }
+    close(QF);
+
+    if ($CONFIG->{verbose}) { print STDERR " [DONE]\n"; }
+
+    return $CONFIG;
+}
+
+sub process_command_line_options {
+    #description _ read command line options (overwriting config-file definitions)
+    #param1  _ config structure (input/output)
+    #param2  _ command-line options
+    #param3  _ command-line meta-evaluation options
+    #param4  _ command-line optimization options
+
+    my $CONFIG = shift;
+    my $options = shift;
+    my $metaeval_options = shift;
+    my $optimize_options = shift;
+
+    if (defined($options->{"v"})) { $CONFIG->{verbose} = $options->{"v"}; }
+    else { $CONFIG->{verbose} = 0; }
+    if (defined($options->{"d"})) { $CONFIG->{debug} = $options->{"d"}; }
+    else { $CONFIG->{debug} = 0; }
+    if (defined($options->{"remake"})) { $CONFIG->{remake} = $options->{"remake"}; }
+    else { $CONFIG->{remake} = 0; }
+    if (defined($options->{"time"})) { $CONFIG->{do_time} = $options->{"time"}; }
+    else { $CONFIG->{do_time} = 0; }
+    if (defined($options->{"no_tok"})) { $CONFIG->{tokenize} = 0; }
+    #else { $CONFIG->{tokenize} = 1; }
+    if (defined($options->{"tsearch"})) { $CONFIG->{tsearch} = 1; }
+    else { $CONFIG->{tsearch} = 0; }
+    if (defined($options->{"testbedid"})) { $CONFIG->{testbedid} = $options->{"testbedid"}; }
+
+
+
+    if (defined($options->{"m"})) {
+       my @metrics = split(/,/, $options->{"m"});
+       my @l = @{$CONFIG->{metrics}};
+       foreach my $m (@metrics) {
+       	  if (!exists($CONFIG->{Hmetrics}->{$m})) { $CONFIG->{Hmetrics}->{$m} = 1; push(@l, $m); }
+       }
+       $CONFIG->{metrics} = \@l;
+    }
+    if (defined($options->{"s"})) {
+       my @systems = split(/,/, $options->{"s"});
+       my %h = map { $_, 1 } @{$CONFIG->{systems}};
+       my @l = @{$CONFIG->{systems}};
+       foreach my $elem (@systems) {
+       	  if (!exists($h{$elem})) { $h{$elem} = 1; push(@l, $elem); }
+       }
+       $CONFIG->{systems} = \@l;
+    }
+    if (defined($options->{"r"})) {
+       my @references = split(/,/, $options->{"r"});
+       my %h = map { $_, 1 } @{$CONFIG->{references}};
+       my @l = @{$CONFIG->{references}};
+       foreach my $elem (@references) {
+       	  if (!exists($h{$elem})) { $h{$elem} = 1; push(@l, $elem); }
+       }
+       $CONFIG->{references} = \@l;
+    }
+    if (defined($options->{"t"})) {
+       my %h = (%{$CONFIG->{segments}}, %{read_selection($options->{"t"})});
+       $CONFIG->{segments} = \%h;
+    }
+
+    my %eval_schemes;
+    if (defined($options->{"eval"})) {
+       my @eval_options = split(/,/, $options->{"eval"});
+       foreach my $c (@eval_options) {
+       	  if (exists($Common::eval_schemes->{$c})) { $eval_schemes{$c} = 1; }
+       	  else { die "[ERROR] unknown evaluation method `$c'!!\n"; }
+       }
+    }
+    $CONFIG->{eval_schemes} = \%eval_schemes;    
+    
+    if (scalar(@{$metaeval_options}) > 1) {
+       my %metaeval_schemes;
+       if (defined($metaeval_options->[0])) {
+          my @schemes = split(/,/, $metaeval_options->[0]);
+          foreach my $s (@schemes) {
+       	     if (exists($Common::eval_schemes->{$s})) { $metaeval_schemes{$s} = 1; }
+       	     else { die "[ERROR] unknown meta-evaluation scheme `$s'!!\n"; }
+          }
+       }
+       $CONFIG->{metaeval_schemes} = \%metaeval_schemes;
+       my %metaeval_criteria;
+       my @metaeval_criteria_list;
+       if (defined($metaeval_options->[1])) {
+          my @criteria = split(/,/, $metaeval_options->[1]);
+          foreach my $c (@criteria) {
+       	     if (exists($Common::metaeval_criteria->{$c})) { $metaeval_criteria{$c} = 1; push(@metaeval_criteria_list, $c); }
+       	     else { die "[ERROR] unknown meta-evaluation criteria `$c'!!\n"; }
+          }
+       }
+       $CONFIG->{metaeval_criteria} = \%metaeval_criteria;
+       $CONFIG->{metaeval_criteria_list} = \@metaeval_criteria_list;
+    }
+
+    if (scalar(@{$optimize_options}) > 1) {
+       my %optimize_schemes;
+       my @optimize_schemes_list;
+       if (defined($optimize_options->[0])) {
+          my @schemes = split(/,/, $optimize_options->[0]);
+          foreach my $s (@schemes) {
+       	     if (exists($Common::eval_schemes->{$s})) { $optimize_schemes{$s} = 1; push(@optimize_schemes_list, $s); }
+       	     else { die "[ERROR] unknown meta-evaluation scheme `$s'!!\n"; }
+          }
+       }
+       $CONFIG->{optimize_schemes} = \%optimize_schemes;
+       $CONFIG->{optimize_schemes_list} = \@optimize_schemes_list;
+       my %optimize_criteria;
+       my @optimize_criteria_list;
+       if (defined($optimize_options->[1])) {
+          my @criteria = split(/,/, $optimize_options->[1]);
+          foreach my $c (@criteria) {
+       	     if (exists($Common::metaeval_criteria->{$c})) { push(@optimize_criteria_list, $c); }
+       	     else { die "[ERROR] unknown meta-evaluation criteria `$c'!!\n"; }
+          }
+       }
+       $CONFIG->{optimize_criteria} = \%optimize_criteria;
+       $CONFIG->{optimize_criteria_list} = \@optimize_criteria_list;
+    }
+
+    if (defined($options->{"include_refs"})) { $CONFIG->{do_refs} = $options->{"include_refs"}; }
+    if (defined($options->{"align"})) { $CONFIG->{alignments} = $options->{"align"}; }
+    if (defined($options->{"metric_names"})) { $CONFIG->{do_metric_names} = $options->{"metric_names"}; }
+    if (defined($options->{"system_names"})) { $CONFIG->{do_system_names} = $options->{"system_names"}; }
+    if (defined($options->{"reference_names"})) { $CONFIG->{do_reference_names} = $options->{"reference_names"}; }
+    if (defined($options->{"g"})) { $CONFIG->{G} = $options->{"g"}; }
+    if (defined($options->{"o"})) { $CONFIG->{O} = $options->{"o"}; }
+    if (defined($options->{"no_storage"})) { $CONFIG->{O_STORAGE} = 0; }
+    if (defined($options->{"sorted"})) { $CONFIG->{SORT} = $options->{"sorted"}; }
+    if (defined($options->{"tex"})) { $CONFIG->{TEX} = $options->{"tex"}; }
+    if (defined($options->{"pdf"})) { $CONFIG->{PDF} = $options->{"pdf"}; $CONFIG->{TEX_REPORT} = ""; }
+    if (defined($options->{"font_size"})) { $CONFIG->{TEX_font_size} = $options->{"font_size"}; }
+    if (defined($options->{"srclang"})) {
+       if (exists($Common::rLANGS->{lc($options->{"srclang"})})) { $CONFIG->{SRCLANG} = lc($options->{"srclang"}); }
+       else { die "[ERROR] UNSUPPORTED SOURCE LANGUAGE ('".lc($options->{"srclang"})."')!!\n"; }
+    }
+    if (defined($options->{"trglang"})) {
+       if (exists($Common::rLANGS->{lc($options->{"trglang"})})) { $CONFIG->{LANG} = lc($options->{"trglang"}); }
+       else { die "[ERROR] UNSUPPORTED TARGET LANGUAGE ('".lc($options->{"trglang"})."')!!\n"; }
+    }
+    if (defined($options->{"srccase"})) {
+        if (lc($options->{"srccase"}) eq $Common::CASE_CI) { $CONFIG->{SRCCASE} = $Common::CASE_CI; }
+        else { $CONFIG->{SRCCASE} = $Common::CASE_CS; }
+    }
+    if (defined($options->{"trgcase"})) {
+        if (lc($options->{"trgcase"}) eq $Common::CASE_CI) { $CONFIG->{CASE} = $Common::CASE_CI; }
+        else { $CONFIG->{CASE} = $Common::CASE_CS; }
+    }
+    if (defined($options->{"float_length"})) { $CONFIG->{float_length} = $options->{"float_length"}; }
+    if (defined($options->{"float_precision"})) { $CONFIG->{float_precision} = $options->{"float_precision"}; }
+
+    #META-EVALUATION PARAMETERS ---------------------------------------------------
+    if (defined($options->{"assessments"})) {
+       #$CONFIG->{assessments} = Assessments::read_file($options->{"assessments"}, $CONFIG->{verbose});
+       (my $assesstype, $CONFIG->{assessments}) = Assessments::read_NISTCSV_file($options->{"assessments"}, $CONFIG->{IDX}->{"source"}, $CONFIG->{verbose});
+       $CONFIG->{avgassessments} = Assessments::average_assessments( $assesstype, $CONFIG->{assessments} );
+    }
+    if (defined($options->{"alfa"})) { $CONFIG->{alfa} = $options->{"alfa"}; }
+    if (defined($options->{"ci"})) {
+       my $ci = $options->{"ci"};
+       if (!exists($Common::rCI->{$ci})) { die "[ERROR] unknown confidence-interval computation method `$ci'!!\n"; }
+       $CONFIG->{ci} = $ci;
+    }
+    if (defined($options->{"n_resamplings"})) { $CONFIG->{n_resamplings} = $options->{"n_resamplings"}; }
+
+    #LEARNING PARAMETERS ----------------------------------------------------------
+    if (defined($options->{"learn"})) { $CONFIG->{learn_scheme} = $options->{"learn"}; }
+    if (defined($options->{"n_epochs"})) { $CONFIG->{n_epochs} = $options->{"n_epochs"}; }
+    if (defined($options->{"min_dist"})) { $CONFIG->{min_dist} = $options->{"min_dist"}; }
+    if (defined($options->{"train_prop"})) { $CONFIG->{train_prop} = $options->{"train_prop"}; }
+    if (defined($options->{"model"})) { $CONFIG->{model} = $options->{"model"}; }
+    else { $CONFIG->{model} = $Common::DATA_PATH."/".$Common::MODEL_DEFAULT; }
+}
+
+sub validate_configuration {
+    #description _ validate configuration (through simple verifications on mandatory arguments and option values)
+    #param1  _ configuration structure
+    #@return _ if valid print configuration and return successfully; die otherwise
+
+    my $CONFIG = shift;
+
+    if ((!(exists($CONFIG->{PATH}))) or ($CONFIG->{PATH} eq "")) { die "[ERROR] PATH undefined!!\n"; }
+
+    if (!-d $CONFIG->{PATH}) { die "[ERROR] PATH directory <".$CONFIG->{PATH}."> does not exsits!!\n"; }
+
+    if (!-d $CONFIG->{tools}) { die "[ERROR] PATH directory <".$CONFIG->{tools}."> does not exsits!!\n"; }
+
+    #if ((!(exists($CONFIG->{src}))) or ($CONFIG->{src} eq "")) { die "[ERROR] source undefined!!\n"; }
+
+    if (scalar(@{$CONFIG->{references}}) > 0) {
+       foreach my $r (@{$CONFIG->{references}}) {
+          if (!exists($CONFIG->{Hrefs}->{$r})) { die "[ERROR] reference '$r' not in test suite!!\n"; }
+       }	
+    }
+    else {
+       my @references = sort keys %{$CONFIG->{Hrefs}}; 
+       #if (scalar(@references) == 0) { die "[ERROR] set of references undefined!!\n"; }
+       #else { $CONFIG->{references} = \@references; }
+       $CONFIG->{references} = \@references;
+    }
+    
+    if (scalar(@{$CONFIG->{systems}}) > 0) {
+       foreach my $s (@{$CONFIG->{systems}}) {
+          if (!exists($CONFIG->{Hsystems}->{$s})) { die "[ERROR] system '$s' not in test suite!!\n"; }
+       }	
+    }
+    else {
+       my @systems = sort keys %{$CONFIG->{Hsystems}}; 
+       if (scalar(@systems) == 0) { die "[ERROR] set of systems undefined!!\n"; }
+       else { $CONFIG->{systems} = \@systems; }
+    }
+
+    if (exists($CONFIG->{Hmetrics})) {
+       if (scalar(keys %{$CONFIG->{Hmetrics}}) == 0) { use_default_metrics($CONFIG); }
+       else {
+          my $metric_set = Metrics::load_metric_set($CONFIG->{SRCLANG}, $CONFIG->{LANG});
+          foreach my $m (keys %{$CONFIG->{Hmetrics}}) {
+             if (!exists($metric_set->{$m})) {
+                die "[ERROR] metric '$m' is unavailable for language pair '", $CONFIG->{SRCLANG}, "-", $CONFIG->{LANG}, "'\n";
+             }
+          }
+       }
+    }
+    else { use_default_metrics($CONFIG); }
+
+    # in the case of empty source use 1st reference as source
+    if (!exists($CONFIG->{src})) {
+       my $R = (sort (@{$CONFIG->{references}}))[0];
+   	   $CONFIG->{src} = $CONFIG->{Href}->{$R};
+       $CONFIG->{IDX}->{"source"} = $CONFIG->{IDX}->{$R};
+    }
+    
+    my $max_system_name_length = 0;
+    foreach my $sys (@{$CONFIG->{systems}}) {
+       if (length($sys) > $max_system_name_length) { $max_system_name_length = length($sys); }
+    }
+    foreach my $ref (@{$CONFIG->{references}}) {
+       if (length($ref) > $max_system_name_length) { $max_system_name_length = length($ref); }
+    }
+    $CONFIG->{sysid_length} = $max_system_name_length;
+    if ($CONFIG->{sysid_length} < $Common::MIN_ID_LENGTH) { $CONFIG->{sysid_length} = $Common::MIN_ID_LENGTH; }
+
+    $CONFIG->{setid_length} = NISTXML::get_setid_length($CONFIG->{IDX}->{$CONFIG->{systems}->[0]});
+    if ($CONFIG->{setid_length} < $Common::MIN_ID_LENGTH) { $CONFIG->{setid_length} = $Common::MIN_ID_LENGTH; }
+
+    $CONFIG->{docid_length} = NISTXML::get_max_docid_length($CONFIG->{IDX}->{$CONFIG->{systems}->[0]});
+    if ($CONFIG->{docid_length} < $Common::MIN_ID_LENGTH) { $CONFIG->{docid_length} = $Common::MIN_ID_LENGTH; }
+
+    $CONFIG->{segid_length} = NISTXML::get_max_segid_length($CONFIG->{IDX}->{$CONFIG->{systems}->[0]});
+    if ($CONFIG->{segid_length} < $Common::MIN_ID_LENGTH) { $CONFIG->{segid_length} = $Common::MIN_ID_LENGTH; }
+    
+    if (!exists($CONFIG->{COMBO})) { $CONFIG->{COMBO} = $CONFIG->{metrics}; }
+    
+    #check the length of the files
+    #print STDERR Dumper $CONFIG;
+    my $wcfiles = $CONFIG->{wc}->{"source"};
+    my @l = @{$CONFIG->{references}};
+    foreach my $elem (@l) {
+       if ( $CONFIG->{wc}->{$elem} != $wcfiles ){ die "[ERROR] reference '$elem' and the source have different number of segments!!\n"; }
+    }
+    @l = @{$CONFIG->{systems}};
+    foreach my $elem (@l) {
+       if ( $CONFIG->{wc}->{$elem} != $wcfiles ){ die "[ERROR] system '$elem' and the source have different number of segments!!\n"; }
+    }
+        
+    
+}
+
+sub print_configuration_options {
+    #description _ prints configuration options onto standard output
+    #param1  _ configuration structure
+
+    my $CONFIG = shift;
+   
+    if ($CONFIG->{verbose}) {
+       Common::display_application_title();
+       Common::print_hline_stderr('-', $Common::HLINE_LENGTH);
+       print STDERR "CONFIGURATION OPTIONS\n";
+       Common::print_hline_stderr('-', $Common::HLINE_LENGTH);
+       #print STDERR "ASIYA_HOME = ".$CONFIG->{PATH}."\n";
+       printf STDERR "language pair = (%s, %s) -> (%s, %s)\n", Common::get_language_name_from_abbreviation($CONFIG->{SRCLANG}),
+                                                               Common::get_case_expansion_from_abbreviation($CONFIG->{SRCCASE}),
+                                                               Common::get_language_name_from_abbreviation($CONFIG->{LANG}),
+                                                               Common::get_case_expansion_from_abbreviation($CONFIG->{CASE});
+       Common::print_hline_stderr('-', $Common::HLINE_LENGTH);
+       print STDERR "input format = ", $CONFIG->{I}, "\n";
+       print STDERR "output format = ", $CONFIG->{O}, "\n";
+       print STDERR "granularity = ", $CONFIG->{G}, "\n";
+       #print STDERR "source = ", $CONFIG->{src}, "\n";
+       Common::print_hline_stderr('-', $Common::HLINE_LENGTH);
+       print STDERR "system_set = { ", join(", ", @{Common::sort_list($CONFIG->{systems}, $CONFIG->{SORT})}), " }\n";
+       print STDERR "reference_set = { ", join(", ", @{Common::sort_list($CONFIG->{references}, $CONFIG->{SORT})}), " }\n";
+       print STDERR "metric_set = { ", join(", ", @{Common::sort_list($CONFIG->{metrics}, $CONFIG->{SORT})}), " }\n";
+       Common::print_hline_stderr('-', $Common::HLINE_LENGTH);
+    }
+}
+
+# *************************************************************************************
+# ******************************* PUBLIC METHODS **************************************
+# *************************************************************************************
+
+sub use_nist_output_format {
+    #description _ change the configuration to use the NIST output format
+    #param1  _ configuration structure
+
+    my $CONFIG = shift;
+
+    set_output_format($CONFIG, $Common::O_NIST);
+}
+
+sub use_default_metrics {
+    #description _ change the configuration to use the default metric set
+    #param1  _ configuration structure
+
+    my $CONFIG = shift;
+
+    if (exists($Metrics::rMETRICS_DEFAULT->{$CONFIG->{LANG}})) {
+       my @metrics = split(" ",  $Metrics::rMETRICS_DEFAULT->{$CONFIG->{LANG}});
+       set_metrics($CONFIG, \@metrics);
+    }
+    else { die "[ERROR] DEFAULT metric set not defined for language <", $CONFIG->{LANG}, ">!!\n"; }
+}
+
+sub use_DR_metrics {
+    #description _ change the configuration to use the DR metric set
+    #param1  _ configuration structure
+
+    my $CONFIG = shift;
+
+    my @metrics = split(" ", $Metrics::METRICS_DR);
+    set_metrics($CONFIG, \@metrics);
+}
+
+sub use_DRdoc_metrics {
+    #description _ change the configuration to use the DRdoc metric set
+    #param1  _ configuration structure
+
+    my $CONFIG = shift;
+
+    my @metrics = split(" ", $Metrics::METRICS_DRdoc);
+    set_metrics($CONFIG, \@metrics);
+}
+
+sub use_ULCh_metrics {
+    #description _ change the configuration to use the ULCh metric set
+    #param1  _ configuration structure
+
+    my $CONFIG = shift;
+
+    if (exists($Metrics::rMETRICS_ULCh->{$CONFIG->{LANG}})) {
+       my @metrics = split(" ", $Metrics::rMETRICS_ULCh->{$CONFIG->{LANG}});
+       set_metrics($CONFIG, \@metrics);
+    }
+    else { die "[ERROR] ULCh metric set not defined for language <", $CONFIG->{LANG}, ">!!\n"; }
+}
+
+sub read_configuration_options {
+    #description _ process configuration file and command-line options
+    #param1  _ configuration file
+    #param2  _ command-line options
+    #param4  _ command-line optimization options
+
+    my $config_file = shift;
+    my $options = shift;
+    my $metaeval_options = shift;
+    my $optimize_options = shift;
+
+    my $CONFIG = process_config_file($config_file, $options);
+    process_command_line_options($CONFIG, $options, $metaeval_options, $optimize_options);
+    validate_configuration($CONFIG);
+    print_configuration_options($CONFIG);
+    
+    return $CONFIG;
+}
+
+
+sub terminate {
+    #description _ terminates, if the given configuration parameters determine so
+    #param1  _ configuration
+
+    my $config = shift;
+
+    if ($config->{do_metric_names} or $config->{do_system_names} or $config->{do_reference_names}) { exit; }    
+}
+
+sub finish_asiya {
+    #description _ clean the workspace and announces the end of the execution 
+    #param1  _ configuration
+    
+    my $config = shift;
+        
+    #if (-d "$Common::DATA_PATH/$Common::TMP") { system "rm -rf $Common::DATA_PATH/$Common::TMP"; } #TEMPORARY DIRECTORY   
+    if ($config->{verbose}) { print STDERR "[FINISHED]\n"; }
+
+}
+
+1;

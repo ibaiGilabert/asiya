@@ -1,0 +1,161 @@
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring
+END
+SRXLike.pm
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/SRXLike.pm
+END
+ROUGE.pm
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/ROUGE.pm
+END
+DPmalt.pm
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/DPmalt.pm
+END
+SP.pm
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/SP.pm
+END
+SR.pm
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/SR.pm
+END
+BLEUNIST.pm
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/BLEUNIST.pm
+END
+PER.pm
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/PER.pm
+END
+BLEU.pm
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/BLEU.pm
+END
+CE.pm
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/CE.pm
+END
+GTM.pm
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/GTM.pm
+END
+Align.pm
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/Align.pm
+END
+METEOR.pm
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/METEOR.pm
+END
+WER.pm
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/WER.pm
+END
+Scores.pm
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/Scores.pm
+END
+LGPL.txt
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/LGPL.txt
+END
+NE.pm
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/NE.pm
+END
+CP.pm
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/CP.pm
+END
+DP.pm
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/DP.pm
+END
+NGRAM.pm
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/NGRAM.pm
+END
+DR.pm
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/DR.pm
+END
+Metrics.pm
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/Metrics.pm
+END
+Overlap.pm
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/Overlap.pm
+END
+ESA.pm
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/ESA.pm
+END
+TERp.pm
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/TERp.pm
+END
+NIST.pm
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/NIST.pm
+END
+LeM.pm
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/Scoring/LeM.pm
+END

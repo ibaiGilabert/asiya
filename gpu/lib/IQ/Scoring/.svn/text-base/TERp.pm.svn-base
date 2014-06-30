@@ -1,0 +1,258 @@
+package TERp;
+
+# ------------------------------------------------------------------------
+
+#Copyright (C) Jesus Gimenez
+
+#This library is free software; you can redistribute it and/or
+#modify it under the terms of the GNU Lesser General Public
+#License as published by the Free Software Foundation; either
+#version 2.1 of the License, or (at your option) any later version.
+
+#This library is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#Lesser General Public License for more details.
+
+#You should have received a copy of the GNU Lesser General Public
+#License along with this library; if not, write to the Free Software
+#Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+# ------------------------------------------------------------------------
+
+use Modern::Perl;
+use File::ReadBackwards;
+use Data::Dumper;
+use IQ::InOut::IQXML;
+use IQ::InOut::NISTSCR;
+use IQ::Common;
+
+our ($TEREXT, $terext, $rTER, $TTERp);
+
+$TERp::TTERp = "terp.v1";  # v1
+$TERp::TEREXT = "TER";
+#$TERp::rTER = { "-".$TERp::TEREXT => 1, "-".$TERp::TEREXT."base" => 1, "-".$TERp::TEREXT."p" => 1, "-".$TERp::TEREXT."p-A" => 1,
+#                $TERp::TEREXT => 1, $TERp::TEREXT."base" => 1, $TERp::TEREXT."p" => 1, $TERp::TEREXT."p-A" => 1 };
+$TERp::rTER = { "-".$TERp::TEREXT => 1, "-".$TERp::TEREXT."base" => 1, "-".$TERp::TEREXT."p" => 1, "-".$TERp::TEREXT."p-A" => 1 };
+
+sub metric_set {
+    #description _ returns the set of available metrics
+    #@return _ metric set structure (hash ref)
+    return $TERp::rTER;
+}
+
+sub read_scores {
+   #description _ read system, document and segment scores (from the corresponding Metrics_MaTR-like format files)
+   #param1  _ do_neg
+   #param2  _ file name 
+   #param2  _ optional. the idx structure for the related basename-system
+   #@return _ (sys_score, doc_scores, seg_scores)
+
+   my $do_neg = shift;
+   my $basename = shift;
+   my $bIDX = shift;
+   
+  
+   my $sys_scores = read_scores_G($do_neg, $basename, $Common::G_SYS, $bIDX);
+   my $doc_scores = read_scores_G($do_neg, $basename, $Common::G_DOC, $bIDX);
+   my $seg_scores = read_scores_G($do_neg, $basename, $Common::G_SEG, $bIDX);
+
+   return ($sys_scores->[0], $doc_scores, $seg_scores);
+}
+
+sub read_scores_G ($$$$) {
+   #description _ reads MetricsMaTr format scr file for a given metric and a given granularity
+   #param1  _ do_neg
+   #param2  _ file name
+   #param3  _ granularity
+   #param4  _ the idx structure
+   #@return _ scores
+
+   my $do_neg = shift;
+   my $basename = shift;
+   my $G = shift;
+   my $bIDX = shift;
+
+   my $file = "$basename.$G.scr";
+
+   #read_scr_file
+   my $hscores = NISTSCR::read_scr_file($file, $G, $do_neg);
+
+   #delete scr file
+   #system("rm -f $file");
+
+   my $scores = Common::reorder_scores( $hscores, $bIDX, $G );
+
+   #compute abs for those non do_neg metrics
+   if (!$do_neg){
+    for (my $c=0; $c < scalar(@{$scores}); $c++){
+        $scores->[$c] = abs($scores->[$c]);
+    }
+   }
+   return $scores;
+}
+
+sub computeMultiTERp {
+   #description _ computes -TERp score (multiple references)
+   #param1  _ source file
+   #param2  _ candidate file
+   #param3  _ reference file(s) [hash reference]
+   #param4  _ target name
+   #param5  _ idx structure
+   #param6  _ remake reports? (1 - yes :: 0 - no)
+   #param7  _ tools
+   #param8  _ language
+   #param9  _ variant (TER | TERp | TERp-A)
+   #param10 _ do_neg (1|0)
+   #param11 _ case (ci/cs)
+   #param12 _ verbosity (0/1)
+
+   my $src = shift;
+   my $out = shift;
+   my $Href = shift;
+   my $TGT = shift;
+   my $IDX = shift;
+   my $remakeREPORTS = shift;
+   my $tools = shift;
+   my $L = shift;
+   my $variant = shift;
+   my $do_neg = shift;
+   my $case = shift;
+   my $verbose = shift;
+
+   my $R = rand($Common::NRAND);
+   my $sysid = $IDX->{$TGT}->[1]->[2];
+
+   my $outNISTxml = "$Common::DATA_PATH/$Common::TMP/$R.$Common::SYSEXT.$TEREXT.$Common::XMLEXT";
+   my $refNISTxml = "$Common::DATA_PATH/$Common::TMP/$R.$Common::REFEXT.$TEREXT.$Common::XMLEXT";
+   if ((!(-e $outNISTxml)) or $remakeREPORTS) { NISTXML::f_create_mteval_doc($out, $outNISTxml, $TGT, $IDX, 1, $Common::CASE_CS, $verbose); }
+   if ((!(-e $refNISTxml)) or $remakeREPORTS) { NISTXML::f_create_mteval_multidoc($Href, $refNISTxml, $IDX, 2, $Common::CASE_CS, $verbose); }
+
+   my $mem_options = " -Xmx1024M "; #cluster executions, write minimum 1G
+   my $phrase_db = "";
+   my $stop_words = "";
+   my $wn_dict = "";
+   my $param = "";
+   my $caseopt = ($case eq $Common::CASE_CS) ? "":"-s"; 
+   
+   if ($variant eq $TEREXT."base") { #TERp with the parameters of TER, turning off stemming, synonymy, phrase substitutions and using the edit costs from TER
+      $param = "$tools/$TERp::TTERp/data/ter.param";
+   }
+   elsif ($variant eq $TEREXT) { #TER with default settings -> no normalization, case insensitive, with punctuation)
+      1; #no-op
+   }
+   elsif ($variant eq $TEREXT."p") { #TERp with default parameters only.
+      #$mem_options = " -Xms1G -Xmx3G ";
+      if ($L eq $Common::L_ENG) {
+         $phrase_db = "-P $tools/$TERp::TTERp/data/phrases.db";
+         $stop_words= "-S $tools/$TERp::TTERp/data/shift_word_stop_list.txt";
+         $wn_dict = "-d ".$ENV{"WNDICT"}; #."/dict"
+      }
+   }
+   elsif ($variant eq $TEREXT."p-A") { #TERp with parameters that were tuned as part of the NIST Metrics MATR 2008 Challenge.
+                                      #This TERp-A metric was optimized for Adequacy on a subset of the MT06 dataset
+      #$mem_options = " -Xmx1024M "; # -Xms1G -Xmx3G
+      $param = "$tools/$TERp::TTERp/data/terpa.param";
+      if ($L eq $Common::L_ENG) {
+         $phrase_db = "-P $tools/$TERp::TTERp/data/phrases.db";
+         $stop_words= "-S $tools/$TERp::TTERp/data/shift_word_stop_list.txt";
+         $wn_dict = "-d ".$ENV{"WNDICT"}; #."/dict"
+      }
+   }
+   else { die "[ERROR] unknown TERp variant <$variant>!!\n"; }
+
+   Common::execute_or_die("java -Dfile.encoding=UTF-8 -jar $mem_options $tools/$TERp::TTERp/dist/lib/terp.jar 
+                            $phrase_db $wn_dict $caseopt -n $Common::DATA_PATH/$Common::TMP/$R. -o nist 
+                            -r $refNISTxml -h $outNISTxml $param > /dev/null 2> /dev/null", 
+                            "[ERROR] problems running TERp..."); 
+
+   my @sys_doc_seg_scores = read_scores($do_neg, "$Common::DATA_PATH/$Common::TMP/$R.$sysid", $IDX->{$TGT});
+
+   if (-e $refNISTxml) { system "rm -f $refNISTxml"; }
+   if (-e $outNISTxml) { system "rm -f $outNISTxml"; }
+   
+   return @sys_doc_seg_scores;
+}
+
+sub doMultiTER {
+   #description _ computes -TER, -TERp and -TERp-A scores (multiple references)
+   #param1  _ configuration
+   #param2  _ target NAME
+   #param3  _ candidate file
+   #param4  _ reference NAME
+   #param5  _ reference file(s) [hash reference]
+   #param6  _ hash scores
+
+   my $config = shift;
+   my $TGT = shift;
+   my $out = shift;
+   my $REF = shift;
+   my $Href = shift;
+   my $hOQ = shift;
+
+   my $src = $config->{src};                    # source file 
+   my $remakeREPORTS = $config->{remake};       # remake reports? (1 - yes :: 0 - no)
+   my $tools = $config->{tools};                # TOOL directory
+   my $L = $config->{LANG};                     # language
+   my $M = $config->{Hmetrics};                 # set of metrics
+   my $verbose = $config->{verbose};            # verbosity (0/1)
+
+   my $GO = 0; my $i = 0;
+   my @mTER = keys %{$TERp::rTER};
+   while (($i < scalar(@mTER)) and (!$GO)) { if (exists($M->{$mTER[$i]})) { $GO = 1; } $i++; }
+
+   if ($GO) {
+      if ($verbose == 1) { print STDERR $TERp::TEREXT."p.."; }
+
+      my $reportTERbasexml = "$Common::DATA_PATH/$Common::REPORTS/$TGT/$REF/-".$TEREXT."base.$Common::XMLEXT";
+      if (((!(-e $reportTERbasexml) and !(-e $reportTERbasexml.".$Common::GZEXT")) or $remakeREPORTS) and $M->{"-".$TEREXT."base"} ) {
+         my ($sys_score, $doc_scores, $seg_scores) = TERp::computeMultiTERp($src, $out, $Href, $TGT, $config->{IDX}, $remakeREPORTS, $tools, $L, $TEREXT."base", 1, $config->{CASE}, $verbose);
+         if ($config->{O_STORAGE} == 1 ) { IQXML::write_report($TGT, $REF, "-".$TEREXT."base", $sys_score, $doc_scores, $seg_scores, $config->{IDX}->{$TGT}, $verbose); }
+			Scores::save_hash_scores("-".$TEREXT."base", $TGT, $REF, $sys_score, $doc_scores, $seg_scores,$hOQ);
+      }
+      $reportTERbasexml = "$Common::DATA_PATH/$Common::REPORTS/$TGT/$REF/".$TEREXT."base.$Common::XMLEXT";
+      if (((!(-e $reportTERbasexml) and !(-e $reportTERbasexml.".$Common::GZEXT")) or $remakeREPORTS) and $M->{$TEREXT."base"} ) {
+         my ($sys_score, $doc_scores, $seg_scores) = TERp::computeMultiTERp($src, $out, $Href, $TGT, $config->{IDX}, $remakeREPORTS, $tools, $L, $TEREXT."base", 0, $config->{CASE}, $verbose);
+         if ($config->{O_STORAGE} == 1 ) { IQXML::write_report($TGT, $REF, $TEREXT."base", $sys_score, $doc_scores, $seg_scores, $config->{IDX}->{$TGT}, $verbose); }
+			Scores::save_hash_scores($TEREXT."base", $TGT, $REF, $sys_score, $doc_scores, $seg_scores,$hOQ);
+      }
+      my $reportTERxml = "$Common::DATA_PATH/$Common::REPORTS/$TGT/$REF/-".$TEREXT.".$Common::XMLEXT";
+      if (((!(-e $reportTERxml) and !(-e $reportTERxml.".$Common::GZEXT")) or $remakeREPORTS) and $M->{"-".$TEREXT} ) {
+         my ($sys_score, $doc_scores, $seg_scores) = TERp::computeMultiTERp($src, $out, $Href, $TGT, $config->{IDX}, $remakeREPORTS, $tools, $L, $TEREXT, 1, $config->{CASE}, $verbose);
+         if ($config->{O_STORAGE} == 1 ) { IQXML::write_report($TGT, $REF, "-".$TEREXT, $sys_score, $doc_scores, $seg_scores, $config->{IDX}->{$TGT}, $verbose); }
+			Scores::save_hash_scores("-".$TEREXT, $TGT, $REF, $sys_score, $doc_scores, $seg_scores,$hOQ);
+      }
+      $reportTERxml = "$Common::DATA_PATH/$Common::REPORTS/$TGT/$REF/".$TEREXT.".$Common::XMLEXT";
+      if (((!(-e $reportTERxml) and !(-e $reportTERxml.".$Common::GZEXT")) or $remakeREPORTS) and $M->{$TEREXT} ) {
+         my ($sys_score, $doc_scores, $seg_scores) = TERp::computeMultiTERp($src, $out, $Href, $TGT, $config->{IDX}, $remakeREPORTS, $tools, $L, $TEREXT, 0, $config->{CASE}, $verbose);
+         if ($config->{O_STORAGE} == 1 ) { IQXML::write_report($TGT, $REF, $TEREXT, $sys_score, $doc_scores, $seg_scores, $config->{IDX}->{$TGT}, $verbose); }
+			Scores::save_hash_scores($TEREXT, $TGT, $REF, $sys_score, $doc_scores, $seg_scores,$hOQ);
+      }
+      my $reportTERpxml = "$Common::DATA_PATH/$Common::REPORTS/$TGT/$REF/-".$TEREXT."p.$Common::XMLEXT";
+      if (((!(-e $reportTERpxml) and !(-e $reportTERpxml.".$Common::GZEXT")) or $remakeREPORTS) and $M->{"-".$TEREXT."p"} ) {
+         my ($sys_score, $doc_scores, $seg_scores) = TERp::computeMultiTERp($src, $out, $Href, $TGT, $config->{IDX}, $remakeREPORTS, $tools, $L, $TEREXT."p", 1, $config->{CASE}, $verbose);
+         if ($config->{O_STORAGE} == 1 ) { IQXML::write_report($TGT, $REF, "-".$TEREXT."p", $sys_score, $doc_scores, $seg_scores, $config->{IDX}->{$TGT}, $verbose); }
+			Scores::save_hash_scores("-".$TEREXT."p", $TGT, $REF, $sys_score, $doc_scores, $seg_scores,$hOQ);
+      }
+      $reportTERpxml = "$Common::DATA_PATH/$Common::REPORTS/$TGT/$REF/".$TEREXT."p.$Common::XMLEXT";
+      if (((!(-e $reportTERpxml) and !(-e $reportTERpxml.".$Common::GZEXT")) or $remakeREPORTS) and $M->{$TEREXT."p"} ) {
+         my ($sys_score, $doc_scores, $seg_scores) = TERp::computeMultiTERp($src, $out, $Href, $TGT, $config->{IDX}, $remakeREPORTS, $tools, $L, $TEREXT."p", 0, $config->{CASE}, $verbose);
+         if ($config->{O_STORAGE} == 1 ) { IQXML::write_report($TGT, $REF, $TEREXT."p", $sys_score, $doc_scores, $seg_scores, $config->{IDX}->{$TGT}, $verbose); }
+			Scores::save_hash_scores($TEREXT."p", $TGT, $REF, $sys_score, $doc_scores, $seg_scores,$hOQ);
+      }
+      my $reportTERpAxml = "$Common::DATA_PATH/$Common::REPORTS/$TGT/$REF/-".$TEREXT."p-A.$Common::XMLEXT";
+      if (((!(-e $reportTERpAxml) and !(-e $reportTERpAxml.".$Common::GZEXT")) or $remakeREPORTS) and $M->{"-".$TEREXT."p-A"} ) {
+         my ($sys_score, $doc_scores, $seg_scores) = TERp::computeMultiTERp($src, $out, $Href, $TGT, $config->{IDX}, $remakeREPORTS, $tools, $L, $TEREXT."p-A", 1, $config->{CASE}, $verbose);
+         if ($config->{O_STORAGE} == 1 ) { IQXML::write_report($TGT, $REF, "-".$TEREXT."p-A", $sys_score, $doc_scores, $seg_scores, $config->{IDX}->{$TGT}, $verbose); }
+			Scores::save_hash_scores("-".$TEREXT."p-A", $TGT, $REF, $sys_score, $doc_scores, $seg_scores,$hOQ);
+      }
+      $reportTERpAxml = "$Common::DATA_PATH/$Common::REPORTS/$TGT/$REF/".$TEREXT."p-A.$Common::XMLEXT";
+      if (((!(-e $reportTERpAxml) and !(-e $reportTERpAxml.".$Common::GZEXT")) or $remakeREPORTS) and $M->{$TEREXT."p-A"} ) {
+         my ($sys_score, $doc_scores, $seg_scores) = TERp::computeMultiTERp($src, $out, $Href, $TGT, $config->{IDX}, $remakeREPORTS, $tools, $L, $TEREXT."p-A", 0, $config->{CASE}, $verbose);
+         if ($config->{O_STORAGE} == 1 ) { IQXML::write_report($TGT, $REF, $TEREXT."p-A", $sys_score, $doc_scores, $seg_scores, $config->{IDX}->{$TGT}, $verbose); }
+			Scores::save_hash_scores($TEREXT."p-A", $TGT, $REF, $sys_score, $doc_scores, $seg_scores,$hOQ);
+      }
+   }
+}
+
+1;

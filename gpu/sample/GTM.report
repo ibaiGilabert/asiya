@@ -1,0 +1,8 @@
+SET         SYS                  GTM-1        GTM-2        GTM-3
+================================================================
+UNKNOWN_SET apertium.txt    0.72727273   0.38329938   0.33087544
+UNKNOWN_SET babelfish.txt   0.86000000   0.53691738   0.48883537
+UNKNOWN_SET bing.txt        0.76595745   0.44314061   0.38893910
+UNKNOWN_SET google.txt      0.74468085   0.53841814   0.50576241
+UNKNOWN_SET reverso.txt     0.81132075   0.44598589   0.40047235
+UNKNOWN_SET systran.txt     0.86000000   0.53691738   0.48883537

@@ -1,0 +1,26 @@
+------------------------------------------------------------------------------------------------------------------------
+ASIYA v3.0
+(C) 2014. TALP, Technical University of Catalonia (written by Meritxell Gonzalez, Jesus Gimenez)
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+CONFIGURATION OPTIONS
+------------------------------------------------------------------------------------------------------------------------
+language pair = (1, case sensitive) -> (1, case sensitive)
+------------------------------------------------------------------------------------------------------------------------
+input format = raw
+output format = mmatrix
+granularity = sys
+------------------------------------------------------------------------------------------------------------------------
+system_set = { apertium.txt, babelfish.txt, bing.txt, google.txt, reverso.txt, systran.txt }
+reference_set = { ref.txt }
+metric_set = { ROUGE-1, ROUGE-2, ROUGE-3, ROUGE-4, ROUGE-L, ROUGE-S*, ROUGE-SU*, ROUGE-W }
+------------------------------------------------------------------------------------------------------------------------
+[METRICS] computing 'system vs. reference' scores (one vs. all)...
+apertium.txt - ref.txt [ROUGE..]
+babelfish.txt - ref.txt [ROUGE..]
+bing.txt - ref.txt [ROUGE..]
+google.txt - ref.txt [ROUGE..]
+reverso.txt - ref.txt [ROUGE..]
+systran.txt - ref.txt [ROUGE..]
+Printing evaluation report...
+[FINISHED]

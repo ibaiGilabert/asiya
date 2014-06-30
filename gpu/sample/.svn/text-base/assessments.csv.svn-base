@@ -1,0 +1,17 @@
+# systemId,documentId,segmentId,judgeId,score
+bing,UNKNOWN_DOC,1,Jesus,7
+google,UNKNOWN_DOC,1,Jesus,6
+apertium,UNKNOWN_DOC,1,Jesus,3
+systran,UNKNOWN_DOC,1,Jesus,8
+bing,UNKNOWN_DOC,1,David,2
+google,UNKNOWN_DOC,1,David,8
+apertium,UNKNOWN_DOC,1,David,4
+systran,UNKNOWN_DOC,1,David,10
+bing,UNKNOWN_DOC,2,Jesus,2
+google,UNKNOWN_DOC,2,Jesus,2
+apertium,UNKNOWN_DOC,2,Jesus,2
+systran,UNKNOWN_DOC,2,Jesus,2
+bing,UNKNOWN_DOC,2,David,8
+google,UNKNOWN_DOC,2,David,8
+apertium,UNKNOWN_DOC,2,David,8
+systran,UNKNOWN_DOC,2,David,8

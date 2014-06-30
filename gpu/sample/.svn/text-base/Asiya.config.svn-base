@@ -1,0 +1,60 @@
+
+input=raw
+
+src=./data/src.txt
+#REFERENCE definition ==================================
+ref=./data/ref.txt
+#SYSTEM OUTPUT definition ==============================
+sys=./data/apertium.txt
+sys=./data/babelfish.txt
+sys=./data/bing.txt
+sys=./data/google.txt
+sys=./data/reverso.txt
+sys=./data/systran.txt
+#-------------------------------------------------------
+
+
+srclang=es
+srccase=cs
+trglang=en
+trgcase=cs
+
+
+some_metrics=BLEU NIST METEOR Ol
+
+metrics_TER = -TER -TERbase -TERp -TERp-A
+
+metrics_BLEU = BLEU BLEU-1 BLEU-2 BLEU-3 BLEU-4 BLEUi-2 BLEUi-3 BLEUi-4
+
+metrics_GTM = GTM-1 GTM-2 GTM-3
+
+metrics_NE = NE-Me(*) NE-Me(ANGLE_QUANTITY) NE-Me(DATE) NE-Me(DISTANCE_QUANTITY) NE-Me(LANGUAGE) NE-Me(LOC) NE-Me(MEASURE) NE-Me(METHOD) NE-Me(MISC) NE-Me(MONEY) NE-Me(NUM) NE-Me(ORG) NE-Me(PER) NE-Me(PERCENT) NE-Me(PROJECT) NE-Me(SIZE_QUANTITY) NE-Me(SPEED_QUANTITY) NE-Me(SYSTEM) NE-Me(TEMPERATURE_QUANTITY) NE-Me(TIME) NE-Me(WEIGHT_QUANTITY) NE-Oe(*) NE-Oe(**) NE-Oe(ANGLE_QUANTITY) NE-Oe(DATE) NE-Oe(DISTANCE_QUANTITY) NE-Oe(LANGUAGE) NE-Oe(LOC) NE-Oe(MEASURE) NE-Oe(METHOD) NE-Oe(MISC) NE-Oe(MONEY) NE-Oe(NUM) NE-Oe(O) NE-Oe(ORG) NE-Oe(PER) NE-Oe(PERCENT) NE-Oe(PROJECT) NE-Oe(SIZE_QUANTITY) NE-Oe(SPEED_QUANTITY) NE-Oe(SYSTEM) NE-Oe(TEMPERATURE_QUANTITY) NE-Oe(TIME) NE-Oe(WEIGHT_QUANTITY)
+
+
+metrics_WER = -WER 
+
+metrics_PER = -PER
+
+metrics_NIST = NIST NIST-1 NIST-2 NIST-3 NIST-4 NIST-5 NISTi-2 NISTi-3 NISTi-4 NISTi-5
+
+metrics_O = Ol Pl Rl Fl
+
+metrics_ROUGE = ROUGE-1 ROUGE-2 ROUGE-3 ROUGE-4 ROUGE-L ROUGE-S* ROUGE-SU* ROUGE-W
+
+metrics_SP = SP-Oc(*) SP-Oc(ADJP) SP-Oc(ADVP) SP-Oc(CONJP) SP-Oc(INTJ) SP-Oc(LST) SP-Oc(NP) SP-Oc(O) SP-Oc(PP) SP-Oc(PRT) SP-Oc(SBAR) SP-Oc(UCP) SP-Oc(VP) SP-Op(#) SP-Op($) SP-Op('') SP-Op(() SP-Op()) SP-Op(*) SP-Op(,) SP-Op(.) SP-Op(:) SP-Op(CC) SP-Op(CD) SP-Op(DT) SP-Op(EX) SP-Op(F) SP-Op(FW) SP-Op(IN) SP-Op(J) SP-Op(JJ) SP-Op(JJR) SP-Op(JJS) SP-Op(LS) SP-Op(MD) SP-Op(N) SP-Op(NN) SP-Op(NNP) SP-Op(NNPS) SP-Op(NNS) SP-Op(P) SP-Op(PDT) SP-Op(POS) SP-Op(PRP$) SP-Op(PRP) SP-Op(R) SP-Op(RB) SP-Op(RBR) SP-Op(RBS) SP-Op(RP) SP-Op(SYM) SP-Op(TO) SP-Op(UH) SP-Op(V) SP-Op(VB) SP-Op(VBD) SP-Op(VBG) SP-Op(VBN) SP-Op(VBP) SP-Op(VBZ) SP-Op(W) SP-Op(WDT) SP-Op(WP$) SP-Op(WP) SP-Op(WRB) SP-Op(``) SP-cNIST SP-cNIST-1 SP-cNIST-2 SP-cNIST-3 SP-cNIST-4 SP-cNIST-5 SP-cNISTi-2 SP-cNISTi-3 SP-cNISTi-4 SP-cNISTi-5 SP-iobNIST SP-iobNIST-1 SP-iobNIST-2 SP-iobNIST-3 SP-iobNIST-4 SP-iobNIST-5 SP-iobNISTi-2 SP-iobNISTi-3 SP-iobNISTi-4 SP-iobNISTi-5 SP-lNIST SP-lNIST-1 SP-lNIST-2 SP-lNIST-3 SP-lNIST-4 SP-lNIST-5 SP-lNISTi-2 SP-lNISTi-3 SP-lNISTi-4 SP-lNISTi-5 SP-pNIST SP-pNIST-1 SP-pNIST-2 SP-pNIST-3 SP-pNIST-4 SP-pNIST-5 SP-pNISTi-2 SP-pNISTi-3 SP-pNISTi-4 SP-pNISTi-5
+
+metrics_SR = SR-Fr(*) SR-MFr(*) SR-MPr(*) SR-MRr(*) SR-Mr(*) SR-Mr(*)_b SR-Mr(*)_i SR-Mr(A0) SR-Mr(A1) SR-Mr(A2) SR-Mr(A3) SR-Mr(A4) SR-Mr(A5) SR-Mr(AA) SR-Mr(AM-ADV) SR-Mr(AM-CAU) SR-Mr(AM-DIR) SR-Mr(AM-DIS) SR-Mr(AM-EXT) SR-Mr(AM-LOC) SR-Mr(AM-MNR) SR-Mr(AM-MOD) SR-Mr(AM-NEG) SR-Mr(AM-PNC) SR-Mr(AM-PRD) SR-Mr(AM-REC) SR-Mr(AM-TMP) SR-Mra(*) SR-Mrv(*) SR-Mrv(*)_b SR-Mrv(*)_i SR-Mrv(A0) SR-Mrv(A1) SR-Mrv(A2) SR-Mrv(A3) SR-Mrv(A4) SR-Mrv(A5) SR-Mrv(AA) SR-Mrv(AM-ADV) SR-Mrv(AM-CAU) SR-Mrv(AM-DIR) SR-Mrv(AM-DIS) SR-Mrv(AM-EXT) SR-Mrv(AM-LOC) SR-Mrv(AM-MNR) SR-Mrv(AM-MOD) SR-Mrv(AM-NEG) SR-Mrv(AM-PNC) SR-Mrv(AM-PRD) SR-Mrv(AM-REC) SR-Mrv(AM-TMP) SR-Nv SR-Ol SR-Or SR-Or(*) SR-Or(*)_b SR-Or(*)_i SR-Or(A0) SR-Or(A1) SR-Or(A2) SR-Or(A3) SR-Or(A4) SR-Or(A5) SR-Or(AA) SR-Or(AM-ADV) SR-Or(AM-CAU) SR-Or(AM-DIR) SR-Or(AM-DIS) SR-Or(AM-EXT) SR-Or(AM-LOC) SR-Or(AM-MNR) SR-Or(AM-MOD) SR-Or(AM-NEG) SR-Or(AM-PNC) SR-Or(AM-PRD) SR-Or(AM-REC) SR-Or(AM-TMP) SR-Or_b SR-Or_i SR-Ora SR-Ora(*) SR-Orv SR-Orv(*) SR-Orv(*)_b SR-Orv(*)_i SR-Orv(A0) SR-Orv(A1) SR-Orv(A2) SR-Orv(A3) SR-Orv(A4) SR-Orv(A5) SR-Orv(AA) SR-Orv(AM-ADV) SR-Orv(AM-CAU) SR-Orv(AM-DIR) SR-Orv(AM-DIS) SR-Orv(AM-EXT) SR-Orv(AM-LOC) SR-Orv(AM-MNR) SR-Orv(AM-MOD) SR-Orv(AM-NEG) SR-Orv(AM-PNC) SR-Orv(AM-PRD) SR-Orv(AM-REC) SR-Orv(AM-TMP) SR-Orv_b SR-Orv_i SR-Ov SR-Pr(*) SR-Rr(*)
+
+
+
+metrics_CE = CE-BiDictA CE-BiDictO CE-Nc CE-Ne CE-Oc CE-Oe CE-Op CE-ippl CE-ipplC CE-ipplP CE-length CE-logp CE-logpC CE-logpP CE-long CE-oov CE-short CE-srcippl CE-srcipplC CE-srcipplP CE-srclen CE-srclogp CE-srclogpC CE-srclogpP CE-srcoov CE-symbols
+
+metrics_CP = CP-Oc(*) CP-Oc(ADJP) CP-Oc(ADVP) CP-Oc(CONJP) CP-Oc(FRAG) CP-Oc(INTJ) CP-Oc(LST) CP-Oc(NAC) CP-Oc(NP) CP-Oc(NX) CP-Oc(O) CP-Oc(PP) CP-Oc(PRN) CP-Oc(PRT) CP-Oc(QP) CP-Oc(RRC) CP-Oc(S) CP-Oc(SBAR) CP-Oc(SINV) CP-Oc(SQ) CP-Oc(UCP) CP-Oc(VP) CP-Oc(WHADJP) CP-Oc(WHADVP) CP-Oc(WHNP) CP-Oc(WHPP) CP-Oc(X) CP-Op(#) CP-Op($) CP-Op('') CP-Op(() CP-Op()) CP-Op(*) CP-Op(,) CP-Op(.) CP-Op(:) CP-Op(CC) CP-Op(CD) CP-Op(DT) CP-Op(EX) CP-Op(F) CP-Op(FW) CP-Op(IN) CP-Op(J) CP-Op(JJ) CP-Op(JJR) CP-Op(JJS) CP-Op(LS) CP-Op(MD) CP-Op(N) CP-Op(NN) CP-Op(NNP) CP-Op(NNPS) CP-Op(NNS) CP-Op(P) CP-Op(PDT) CP-Op(POS) CP-Op(PRP$) CP-Op(PRP) CP-Op(R) CP-Op(RB) CP-Op(RBR) CP-Op(RBS) CP-Op(RP) CP-Op(SYM) CP-Op(TO) CP-Op(UH) CP-Op(V) CP-Op(VB) CP-Op(VBD) CP-Op(VBG) CP-Op(VBN) CP-Op(VBP) CP-Op(VBZ) CP-Op(W) CP-Op(WDT) CP-Op(WP$) CP-Op(WP) CP-Op(WRB) CP-Op(``) CP-STM-1 CP-STM-2 CP-STM-3 CP-STM-4 CP-STM-5 CP-STM-6 CP-STM-7 CP-STM-8 CP-STM-9 CP-STMi-2 CP-STMi-3 CP-STMi-4 CP-STMi-5 CP-STMi-6 CP-STMi-7 CP-STMi-8 CP-STMi-9
+
+metrics_DP = DP-HWCM_c-1 DP-HWCM_c-2 DP-HWCM_c-3 DP-HWCM_c-4 DP-HWCM_r-1 DP-HWCM_r-2 DP-HWCM_r-3 DP-HWCM_r-4 DP-HWCM_w-1 DP-HWCM_w-2 DP-HWCM_w-3 DP-HWCM_w-4 DP-HWCMi_c-2 DP-HWCMi_c-3 DP-HWCMi_c-4 DP-HWCMi_r-2 DP-HWCMi_r-3 DP-HWCMi_r-4 DP-HWCMi_w-2 DP-HWCMi_w-3 DP-HWCMi_w-4 DP-Oc(*) DP-Oc(a) DP-Oc(as) DP-Oc(aux) DP-Oc(be) DP-Oc(c) DP-Oc(comp) DP-Oc(det) DP-Oc(have) DP-Oc(n) DP-Oc(postdet) DP-Oc(ppspec) DP-Oc(predet) DP-Oc(prep) DP-Oc(saidx) DP-Oc(sentadjunct) DP-Oc(subj) DP-Oc(that) DP-Oc(u) DP-Oc(v) DP-Oc(vbe) DP-Oc(xsaid) DP-Ol(*) DP-Ol(1) DP-Ol(2) DP-Ol(3) DP-Ol(4) DP-Ol(5) DP-Ol(6) DP-Ol(7) DP-Ol(8) DP-Ol(9) DP-Or(*) DP-Or(amod) DP-Or(amount-value) DP-Or(appo) DP-Or(appo-mod) DP-Or(as-arg) DP-Or(as1) DP-Or(as2) DP-Or(aux) DP-Or(be) DP-Or(being) DP-Or(by-subj) DP-Or(c) DP-Or(cn) DP-Or(comp1) DP-Or(conj) DP-Or(desc) DP-Or(dest) DP-Or(det) DP-Or(else) DP-Or(fc) DP-Or(gen) DP-Or(guest) DP-Or(have) DP-Or(head) DP-Or(i) DP-Or(inv-aux) DP-Or(inv-have) DP-Or(lex-dep) DP-Or(lex-mod) DP-Or(mod) DP-Or(mod-before) DP-Or(neg) DP-Or(nn) DP-Or(num) DP-Or(num-mod) DP-Or(obj) DP-Or(obj1) DP-Or(obj2) DP-Or(p) DP-Or(p-spec) DP-Or(pcomp-c) DP-Or(pcomp-n) DP-Or(person) DP-Or(pnmod) DP-Or(poss) DP-Or(post) DP-Or(pre) DP-Or(pred) DP-Or(punc) DP-Or(rel) DP-Or(s) DP-Or(sc) DP-Or(subcat) DP-Or(subclass) DP-Or(subj) DP-Or(title) DP-Or(vrel) DP-Or(wha) DP-Or(whn) DP-Or(whp) 
+
+metrics_DPm = DPm-HWCM_c-1 DPm-HWCM_c-2 DPm-HWCM_c-3 DPm-HWCM_c-4 DPm-HWCM_r-1 DPm-HWCM_r-2 DPm-HWCM_r-3 DPm-HWCM_r-4 DPm-HWCM_w-1 DPm-HWCM_w-2 DPm-HWCM_w-3 DPm-HWCM_w-4 DPm-HWCMi_c-2 DPm-HWCMi_c-3 DPm-HWCMi_c-4 DPm-HWCMi_r-2 DPm-HWCMi_r-3 DPm-HWCMi_r-4 DPm-HWCMi_w-2 DPm-HWCMi_w-3 DPm-HWCMi_w-4 DPm-Oc(abbrev) DPm-Oc(acomp) DPm-Oc(advcl) DPm-Oc(advmod) DPm-Oc(agent) DPm-Oc(amod) DPm-Oc(appos) DPm-Oc(arg) DPm-Oc(attr) DPm-Oc(aux) DPm-Oc(auxpass) DPm-Oc(cc) DPm-Oc(ccomp) DPm-Oc(comp) DPm-Oc(complm) DPm-Oc(conj) DPm-Oc(cop) DPm-Oc(csubj) DPm-Oc(csubjpass) DPm-Oc(dep) DPm-Oc(det) DPm-Oc(dobj) DPm-Oc(expl) DPm-Oc(infmod) DPm-Oc(iobj) DPm-Oc(mark) DPm-Oc(mod) DPm-Oc(mwe) DPm-Oc(neg) DPm-Oc(nn) DPm-Oc(npadvmod) DPm-Oc(nsubj) DPm-Oc(nsubjpass) DPm-Oc(num) DPm-Oc(number) DPm-Oc(obj) DPm-Oc(parataxis) DPm-Oc(partmod) DPm-Oc(pobj) DPm-Oc(poss) DPm-Oc(possessive) DPm-Oc(preconj) DPm-Oc(predet) DPm-Oc(prep) DPm-Oc(prt) DPm-Oc(punct) DPm-Oc(purpcl) DPm-Oc(quantmod) DPm-Oc(rcmod) DPm-Oc(ref) DPm-Oc(rel) DPm-Oc(sdep) DPm-Oc(subj) DPm-Oc(tmod) DPm-Oc(xcomp) DPm-Oc(xsubj) DPm-Ol(1) DPm-Ol(2) DPm-Ol(3) DPm-Ol(4) DPm-Ol(5) DPm-Ol(6) DPm-Ol(7) DPm-Ol(8) DPm-Ol(9) DPm-Or(abbrev) DPm-Or(acomp) DPm-Or(advcl) DPm-Or(advmod) DPm-Or(agent) DPm-Or(amod) DPm-Or(appos) DPm-Or(arg) DPm-Or(attr) DPm-Or(aux) DPm-Or(auxpass) DPm-Or(cc) DPm-Or(ccomp) DPm-Or(comp) DPm-Or(complm) DPm-Or(conj) DPm-Or(cop) DPm-Or(csubj) DPm-Or(csubjpass) DPm-Or(dep) DPm-Or(det) DPm-Or(dobj) DPm-Or(expl) DPm-Or(infmod) DPm-Or(iobj) DPm-Or(mark) DPm-Or(mod) DPm-Or(mwe) DPm-Or(neg) DPm-Or(nn) DPm-Or(npadvmod) DPm-Or(nsubj) DPm-Or(nsubjpass) DPm-Or(num) DPm-Or(number) DPm-Or(obj) DPm-Or(parataxis) DPm-Or(partmod) DPm-Or(pobj) DPm-Or(poss) DPm-Or(possessive) DPm-Or(preconj) DPm-Or(predet) DPm-Or(prep) DPm-Or(prt) DPm-Or(punct) DPm-Or(purpcl) DPm-Or(quantmod) DPm-Or(rcmod) DPm-Or(ref) DPm-Or(rel) DPm-Or(sdep) DPm-Or(subj) DPm-Or(tmod) DPm-Or(xcomp) DPm-Or(xsubj)
+
+metrics_DR = DR-Fr(*) DR-Frp(*) DR-Ol DR-Or(*) DR-Or(*)_b DR-Or(*)_i DR-Or(alfa) DR-Or(card) DR-Or(drs) DR-Or(eq) DR-Or(imp) DR-Or(merge) DR-Or(named) DR-Or(not) DR-Or(or) DR-Or(pred) DR-Or(prop) DR-Or(rel) DR-Or(smerge) DR-Or(timex) DR-Or(whq) DR-Or-(dr) DR-Orp(*) DR-Orp(*)_b DR-Orp(*)_i DR-Orp(alfa) DR-Orp(card) DR-Orp(dr) DR-Orp(drs) DR-Orp(eq) DR-Orp(imp) DR-Orp(merge) DR-Orp(named) DR-Orp(not) DR-Orp(or) DR-Orp(pred) DR-Orp(prop) DR-Orp(rel) DR-Orp(smerge) DR-Orp(timex) DR-Orp(whq) DR-Pr(*) DR-Prp(*) DR-Rr(*) DR-Rrp(*) DR-STM-1 DR-STM-2 DR-STM-3 DR-STM-4 DR-STM-4_b DR-STM-4_i DR-STM-5 DR-STM-6 DR-STM-7 DR-STM-8 DR-STM-9 DR-STMi-2 DR-STMi-3 DR-STMi-4 DR-STMi-5 DR-STMi-6 DR-STMi-7 DR-STMi-8 DR-STMi-9 DRdoc-Ol DRdoc-Or(*) DRdoc-Or(*)_b DRdoc-Or(*)_i DRdoc-Or(alfa) DRdoc-Or(card) DRdoc-Or(dr) DRdoc-Or(drs) DRdoc-Or(eq) DRdoc-Or(imp) DRdoc-Or(merge) DRdoc-Or(named) DRdoc-Or(not) DRdoc-Or(or) DRdoc-Or(pred) DRdoc-Or(prop) DRdoc-Or(rel) DRdoc-Or(smerge) DRdoc-Or(timex) DRdoc-Or(whq) DRdoc-Orp(*) DRdoc-Orp(*)_b DRdoc-Orp(*)_i DRdoc-Orp(alfa) DRdoc-Orp(card) DRdoc-Orp(dr) DRdoc-Orp(drs) DRdoc-Orp(eq) DRdoc-Orp(imp) DRdoc-Orp(merge) DRdoc-Orp(named) DRdoc-Orp(not) DRdoc-Orp(or) DRdoc-Orp(pred) DRdoc-Orp(prop) DRdoc-Orp(rel) DRdoc-Orp(smerge) DRdoc-Orp(timex) DRdoc-Orp(whq) DRdoc-STM-1 DRdoc-STM-2 DRdoc-STM-3 DRdoc-STM-4 DRdoc-STM-4_b DRdoc-STM-4_i DRdoc-STM-5 DRdoc-STM-6 DRdoc-STM-7 DRdoc-STM-8 DRdoc-STM-9 DRdoc-STMi-2 DRdoc-STMi-3 DRdoc-STMi-4 DRdoc-STMi-5 DRdoc-STMi-6 DRdoc-STMi-7 DRdoc-STMi-8 DRdoc-STMi-9
+
+

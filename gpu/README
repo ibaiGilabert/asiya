@@ -1,0 +1,87 @@
+***********************************************************************
+TOOL:        IQMT
+AUTHOR(s):   Jesus Gimenez
+DATE:        May 2010
+VERSION:     2.3
+DESCRIPTION: A Framework for Automatic MT Evaluation
+***********************************************************************
+
+
+Contents
+--------
+
+  README.TXT _ this file.
+ Makefile.PL _ configuration script.
+    MANIFEST _ list of software components included in the package.
+    LGPL.txt _ license terms.
+       ./lib _ IQ library.
+       ./bin _ executable files:
+               * Asiya.pl      _ general evaluation and meta-evaluation (main program)
+     ./tools _ external software for metric computation
+       ./doc _ documentation
+    ./sample _ sample test bed
+
+
+Description
+-----------
+
+IQMT is a software for Automatic Machine Translation (meta-)evaluation.
+IQMT integrates evaluation measures at different linguistic levels
+(lexical, syntactic and semantic)
+
+(See "./doc" directory)
+
+
+IQMT Discussion Group
+========================
+
+Discussion on features and bugs of this software as well as
+information about oncoming updates takes place on the IQMT group, to
+which you can subscribe at:
+
+http://groups-beta.google.com/group/IQMT
+
+and post messages at:
+
+IQMT@googlegroups.com
+
+Any feedback (comments, suggestions, bug reporting) from the nlp
+community members will be highly appreciated.
+
+
+CONTRIBUTING:
+=============
+
+The IQMT package is licensed under LGPL , which means that it may be
+linked to and used by commercial software packages. But the license
+also enforces that any changes or improvements made to the library
+must be redistributed under LGPL terms.
+
+Thus, if you improve the software or data, either adding new
+functionalities, fixing bugs, or adding new metrics, you can not
+distribute them under different conditions than those stated in the
+license (i.e. freely and with no usage restrictions).
+
+IQMT is available to the research community through subversion.
+
+  * svn co svn://biniki.lsi.upc.edu/iqmt/trunk
+
+Everyone is allowed to check out.
+
+If you want that your changes and improvements become useful to many
+other people using this free software, please contact us so you are
+granted with the necessary permissions (jgimenez@lsi.upc.edu). 
+
+
+REFERENCES:
+==========
+
+Please reference this tool in your academic works citing any of the following works:
+
+@phdthesis{GimenezThesis'08,
+  author = {Jes\'{u}s Gim\'{e}nez},
+  title  = "{Empirical Machine Translation and its Evaluation}",
+  school = "{Universitat Polit\`{e}cnica de Catalunya}",
+  year   = {2008}
+}
+

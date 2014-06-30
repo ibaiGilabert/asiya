@@ -1,0 +1,8 @@
+SET         SYS                   -PER
+======================================
+UNKNOWN_SET apertium.txt   -0.28571429
+UNKNOWN_SET babelfish.txt  -0.16326531
+UNKNOWN_SET bing.txt       -0.26530612
+UNKNOWN_SET google.txt     -0.28571429
+UNKNOWN_SET reverso.txt    -0.28571429
+UNKNOWN_SET systran.txt    -0.16326531

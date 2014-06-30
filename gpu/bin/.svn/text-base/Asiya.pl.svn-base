@@ -1,0 +1,258 @@
+#!/usr/bin/perl
+
+# ------------------------------------------------------------------------
+
+#Copyright (C) Jesus Gimenez
+
+#This library is free software; you can redistribute it and/or
+#modify it under the terms of the GNU Lesser General Public
+#License as published by the Free Software Foundation; either
+#version 2.1 of the License, or (at your option) any later version.
+
+#This library is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#Lesser General Public License for more details.
+
+#You should have received a copy of the GNU Lesser General Public
+#License along with this library; if not, write to the Free Software
+#Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+# ------------------------------------------------------------------------
+
+# Authors     : Jesus Gimenez
+# Date        : March 2010-...
+# Description : Responsible for (meta-)evaluation
+#
+# Usage: Asiya.pl [options] Asiya.config
+#
+#                      (config file)
+#
+# ------------------------------------------------------------------------
+
+binmode(STDIN, ":utf8");
+binmode(STDOUT, ":utf8");
+
+
+use FindBin qw($RealBin); # $ReadBin has the real path to Asiya.pl script
+BEGIN
+{
+    unshift @INC, "$RealBin/../lib";
+    unshift @INC, "$ENV{SVMTool_FOLDER}/lib";
+}
+
+use Modern::Perl;
+use Data::Dumper;
+use Getopt::Long;
+use IQ::Common;
+use IQ::Config;
+use IQ::InOut::NISTXML;
+use IQ::AsiyaAPI;
+use IQ::Scoring::Metrics;
+
+
+
+sub usage
+{
+   $0 =~ /\/([^\/]*$)/;
+   print STDERR "\nUsage: ", $1, "  [options]  <config_file>\n\n";
+   print STDERR "Options:\n\n";
+
+   Common::print_hline_stderr('-', $Common::HLINE_LENGTH);
+   print STDERR "evaluation options\n";
+   Common::print_hline_stderr('-', $Common::HLINE_LENGTH);
+   print STDERR "  - eval  <schemes>                  : do evaluation according to the given schemes\n";
+   print STDERR "                                       <schemes> is a list 'S1,S2,...,Sn' where Si in {'$Common::S_SINGLE', '$Common::S_ULC', '$Common::S_QUEEN', '$Common::S_MODEL'}\n";
+   print STDERR "                                         - $Common::S_SINGLE -- individual metric scores\n";   
+   print STDERR "                                         - $Common::S_ULC -- normalized arithmetic mean of metric scores\n";
+   print STDERR "                                         - $Common::S_QUEEN -- QUEEN scores\n";
+   print STDERR "                                         - $Common::S_MODEL -- learned combination model scores (to be used with '-model <s>' option, \n";
+   print STDERR "                                                                                      '$Common::MODEL_DEFAULT' model used by default)\n";
+   print STDERR "  - o <format>                       : output format ('$Common::O_DEFAULT' by default)\n";
+   print STDERR "                                         - '$Common::O_MMATRIX' - score matrix on a metric basis\n";
+   print STDERR "                                         - '$Common::O_SMATRIX' - score matrix on a system basis\n";
+   print STDERR "                                         - '$Common::O_NIST' - NIST/WMT file format report\n";
+   print STDERR "  - include_refs                     : include evaluation scores for translation references (disabled by default)\n";
+   print STDERR "  - align                            : calculate and use the alignments between src and ref/candidates (disabled by default)\n";
+   print STDERR "                                         - '0' - disabled\n";
+   print STDERR "                                         - '1' - enabled\n";
+   print STDERR "                                         - '2' - both\n";
+   print STDERR "  - optimize  <schemes>  <criteria>  : optimize metric combination according to the given combination schemes and meta-evaluation criteria\n";
+   print STDERR "                                       <schemes> is a list 'S1,S2,...,Sn' where Si in {'$Common::S_SINGLE', '$Common::S_ULC', '$Common::S_QUEEN'}\n";
+   print STDERR "                                       <criteria> is a list 'C1,C2,...,Cn' where Ci in {'$Common::C_PEARSON', '$Common::C_SPEARMAN', '$Common::C_KENDALL', '$Common::C_MRANKENDALL','$Common::C_KING', '$Common::C_ORANGE', '$Common::C_MRANKENDALL', '$Common::C_CONSISTENCY'}\n";
+   print STDERR "                                         - correlation coefficients (to be used together with '-assessments' option)\n";
+   print STDERR "                                           - '$Common::C_PEARSON' -- compute Pearson correlation coefficients\n";
+   print STDERR "                                           - '$Common::C_SPEARMAN' -- compute Spearman correlation coefficients\n";
+   print STDERR "                                           - '$Common::C_KENDALL' -- compute Kendall correlation coefficients\n";
+   print STDERR "                                           - '$Common::C_MRANKENDALL' -- compute Kendall correlation coefficients for multiple ranks (e.g. segment ranks)\n";
+   print STDERR "                                           - '$Common::C_CONSISTENCY' -- compute CONSISTENCY measure\n";
+   print STDERR "                                           - '$Common::C_KING' -- compute KING measure\n";
+   print STDERR "                                           - '$Common::C_ORANGE' -- compute ORANGE measure\n";
+
+   print STDERR "\n";
+   Common::print_hline_stderr('-', $Common::HLINE_LENGTH);
+   print STDERR "meta-evaluation options\n";
+   Common::print_hline_stderr('-', $Common::HLINE_LENGTH);
+   print STDERR "  - metaeval  <schemes>  <criteria>  : do metaevaluation according to the given schemes and criteria\n";
+   print STDERR "                                       <schemes> is a list 'S1,S2,...,Sn' where Si in {'$Common::S_SINGLE', '$Common::S_ULC', '$Common::S_QUEEN'}\n";
+   print STDERR "                                       <criteria> is a list 'C1,C2,...,Cn' where Ci in {'$Common::C_PEARSON', '$Common::C_SPEARMAN', '$Common::C_KENDALL', '$Common::C_KING', '$Common::C_ORANGE', '$Common::C_MRANKENDALL', '$Common::C_CONSISTENCY'}\n";
+   print STDERR "  - assessments  <file>              : file containing human assessments (NIST CSV format, header + one assessment per line)\n";
+   print STDERR "  - ci <method>                      : confidence interval method ('$Common::CI_DEFAULT' by default)\n";
+   print STDERR "                                         - '$Common::CI_NONE' -- None\n";
+   print STDERR "                                         - '$Common::CI_FISHER' -- Fisher transformation\n";
+   print STDERR "                                         - '$Common::CI_BOOTSTRAP' -- bootstrap resampling\n";
+   print STDERR "                                         - '$Common::CI_EXHAUSTIVE_BOOTSTRAP' -- exhaustive bootstrap resampling\n";
+   print STDERR "                                         - '$Common::CI_PAIRED_BOOTSTRAP' -- paired bootstrap resampling\n";
+   print STDERR "                                         - '$Common::CI_EXHAUSTIVE_PAIRED_BOOTSTRAP' -- exhaustive paired bootstrap resampling\n";
+   print STDERR "                                       (applies only to correlation coefficients)\n";
+   print STDERR "  - alfa  <f>                        : (1 - alfa) statistical significance (alfa is $Common::ALFA_DEFAULT by default)\n";
+   print STDERR "  - n_resamplings  <i>               : number of bootstrap resamplings ($Common::N_RESAMPLINGS_DEFAULT by default)\n";
+
+   print STDERR "\n";
+   Common::print_hline_stderr('-', $Common::HLINE_LENGTH);
+   print STDERR "learning options\n";
+   Common::print_hline_stderr('-', $Common::HLINE_LENGTH);
+   print STDERR "  - learn <scheme>                   : do measure combination learning according to the selected scheme\n";
+   print STDERR "                                         - $Common::LEARN_PERCEPTRON -- perceptron based on-line learning\n";
+   print STDERR "  - n_epochs   <i>                   : number of epochs (only applicable under '$Common::LEARN_PERCEPTRON' scheme, $Common::N_EPOCHS_DEFAULT by default)\n";
+   print STDERR "  - min_dist   <f>                   : minimum distance between human scores ($Common::MIN_DIST_DEFAULT by default)\n";
+   print STDERR "  - train_prop   <f>                 : proportion of training examples ($Common::TRAINING_PROPORTION_DEFAULT by default)\n";
+   print STDERR "  - model   <s>                      : model file ---to be created during learning and used during eval ('$Common::MODEL_DEFAULT' by default)\n";
+
+   print STDERR "\n";
+   Common::print_hline_stderr('-', $Common::HLINE_LENGTH);
+   print STDERR "general options\n";
+   Common::print_hline_stderr('-', $Common::HLINE_LENGTH);
+   print STDERR "  - metric_set <name>                : set of metrics by set name as declared in the config_file        [predefined metric set used by default]\n";
+   print STDERR "  - m <metrics>                      : set of metrics (as a comma-separated list)\n";
+   print STDERR "  - system_set <name>                : set of systems by set name as declared in the config_file        [all systems used by default]\n";
+   print STDERR "  - s <systems>                      : set of systems (as a comma-separated list)\n";
+   print STDERR "  - reference_set <name>             : set of references by set name as declared in the config_file     [all references used by default]\n";
+   print STDERR "  - r <references>                   : additional references (as a comma-separated list)\n";
+   #print STDERR "  - test_cases <name>                : set of test cases by set name as declared in the config_file     [all segments used by default]\n";
+   #print STDERR "  - t <references>                   : set of test cases (as a comma-separated list)\n";
+
+   print STDERR "\n";
+   print STDERR "  - system_names                     : displays the names of the systems in the test suite (and terminates)\n";
+   print STDERR "  - reference_names                  : displays the names of the references in the test suite (and terminates)\n";
+   print STDERR "  - metric_names                     : displays the names of the metrics in the test suit (and terminates)\n";
+   print STDERR "                                       combine with -srclang and -trglang to know the list of available metrics\n";
+
+   print STDERR "\n";
+   print STDERR "  - srclang <language>               : source translation language ('$Common::L_OTHER' by default)\n";
+   print STDERR "  - trglang <language>               : target translation language ('$Common::L_DEFAULT' by default)\n";
+   print STDERR "                                         - '$Common::L_ENG' - English\n";
+   print STDERR "                                         - '$Common::L_SPA' - Spanish\n";
+   print STDERR "                                         - '$Common::L_GER' - German\n";
+   print STDERR "                                         - '$Common::L_FRN' - French\n";
+   print STDERR "                                         - '$Common::L_CZE' - Czech\n";
+   print STDERR "                                         - '$Common::L_CAT' - Catalan\n";
+   print STDERR "                                         - '$Common::L_OTHER' - Other\n";
+
+   print STDERR "  - srccase <case>                   : source translation case ('$Common::CASE_DEFAULT' by default)\n";
+   print STDERR "  - trgcase <case>                   : target translation case ('$Common::CASE_DEFAULT' by default)\n";
+   print STDERR "                                         - '$Common::CASE_CS' - case-sensitive\n";
+   print STDERR "                                         - '$Common::CASE_CI' - case-insensitive\n";
+
+   print STDERR "\n";
+   print STDERR "  - i <format>                       : input format ('$Common::I_DEFAULT' by default)\n";
+   print STDERR "                                         - '$Common::I_RAW' - one-sentence-per-line plain-text format\n";
+   print STDERR "                                         - '$Common::I_NIST' - NIST/WMT XML file format (DTD v$NISTXML::DTD)\n";
+   print STDERR "\n";
+   print STDERR "  - no_tok                           : do not tokenize the input\n";
+   print STDERR "\n";
+   print STDERR "  - sorted  <field>                  : sort tables according to the given field ('$Common::SORT_DEFAULT' by default)\n";
+   print STDERR "                                         - '$Common::SORT_NAME' - metric or system name\n";
+#   print STDERR "                                         - '$Common::SORT_SCORE' - metric score (so far only available for -metaeval)\n";
+   print STDERR "                                         - '$Common::SORT_NONE' - as typed\n";
+   print STDERR "\n";
+   print STDERR "  - tex                              : generate LaTeX reports (when applicable)\n";
+   print STDERR "  - pdf  <file.pdf>                  : generate pdf  (when applicable)\n";
+   print STDERR "  - font_size  <size>                : size in {'$Common::FS_HUGE', '$Common::FS_LARGE', '$Common::FS_NORMAL', '$Common::FS_SMALL', '$Common::FS_TINY'} ('$Common::FS_DEFAULT' by default)\n";
+
+   print STDERR "\n";
+   print STDERR "  - g <granularity>                  : output granularity ('$Common::G_DEFAULT' by default)\n";
+   print STDERR "                                         - '$Common::G_SYS' - system level\n";
+   print STDERR "                                         - '$Common::G_DOC' - document level\n";
+   print STDERR "                                         - '$Common::G_SEG' - segment level\n";
+   print STDERR "                                         - '$Common::G_ALL' - all (system, document and segment)\n";
+   print STDERR "  - float_length   <i>               : float length ($Common::FLOAT_LENGTH_DEFAULT by default)\n";
+   print STDERR "  - float_precision   <i>            : float precision ($Common::FLOAT_PRECISION_DEFAULT by default)\n";
+
+   print STDERR "  - time                             : print metric computation time\n";
+
+   print STDERR "  - v                                : verbosity\n";
+   print STDERR "  - d                                : show debug trace\n";
+   print STDERR "  - remake                           : remake metric computations\n";
+   print STDERR "  - version                          : version number\n";
+   print STDERR "  - help                             : this help\n";
+
+   print STDERR "\n";
+   Common::print_hline_stderr('-', $Common::HLINE_LENGTH);
+   print STDERR "\nExamples:\n";   
+   print STDERR "\n#1 --> configuration file validity check\n\n";
+   print STDERR "       $1 Asiya.config\n";
+   print STDERR "\n#2 --> evaluation at the segment level (both individual scores and their combined ULC)\n\n";
+   print STDERR "       $1 -eval $Common::S_SINGLE,$Common::S_ULC -g $Common::G_SEG Asiya.config\n";
+   print STDERR "\n#3 --> evaluation over a specific set of metrics, systems, and references\n\n";
+   print STDERR "       $1 -eval $Common::S_SINGLE -g $Common::G_SEG -m GTM-2,METEOR-pa,ROUGE-W,CP-STM-6,DP-Or(*),SR-Or(*),DR-STM-6 -s system01,system04 -r reference01,reference03 Asiya.config\n";
+   print STDERR "\n#4 --> meta-evaluation based on Pearson and Spearman correlation coefficients with adequacy assessments at the system level\n";
+   print STDERR "       using bootstrap resampling for statistical significance (at a 99%, with 500 random resamplings)\n\n";
+   print STDERR "       $1 -metaeval $Common::S_SINGLE $Common::C_PEARSON,$Common::C_SPEARMAN -assessments adequacy.csv -g $Common::G_SYS -alfa 0.01 -ci '$Common::CI_BOOTSTRAP' -n_resamplings 500 Asiya.config\n\n";
+   exit;
+}
+
+# --------------------------------------------------------------------------------------------------------
+# -- main program
+# --------------------------------------------------------------------------------------------------------
+
+# -- read options ------------------------------------------------------------------------------------
+my %options = ();
+my @optimization_params;
+my @metaevaluation_params;
+
+
+#print "\n---- ENV\n";
+#for my $key ( keys %ENV ){ print "$key -- $ENV{$key}\n"; }
+#print "FI ENV \n";
+#print "\n---- INC\n";
+#for my $key ( keys %INC ){ print "$key -- $INC{$key}\n"; }
+#print "FI INC\n";
+
+
+GetOptions(\%options, "metric_names!", "system_names!", "reference_names!",
+                      "metric_set=s", "system_set=s", "reference_set=s",
+                      #"test_cases=s", 
+                      "m=s", "s=s", "r=s","no_tok!","tsearch!","testbedid=s",
+                      #"t=s",
+                      "eval=s", "include_refs!", "optimize=s{2}" => \@optimization_params,
+                      "metaeval=s{2}" => \@metaevaluation_params, "assessments=s", "ci=s",
+                      "learn=s", "n_epochs=i", "min_dist=f", "train_prop=f", "model=s",
+                      "n_resamplings=i", "alfa=f", "align=i", 
+                      "srclang=s", "trglang=s", "srccase=s", "trgcase=s", "data_path=s",
+                      "i=s", "o=s", "no_storage!", "sorted=s", "tex!", "pdf=s", "font_size=s",
+                      "g=s", "float_length=i", "float_precision=i",
+                      "time!", "remake!", "v!", "d!", "version!", "help!");
+
+if ($options{"help"}) { usage(); }
+if ($options{"version"}) { die "$Common::appNAME v.$Common::appVERSION\n"; }
+
+#--- if - metric_names, srclang and trglang, then no need for config file! --#
+if ($options{"metric_names"} && $options{"srclang"} && $options{"trglang"} ){
+	Metrics::print_metric_names( $options{"srclang"}, $options{"trglang"});
+	exit;
+}
+
+# -- check number of argments
+my $NARG = 1;
+my $ARGLEN = scalar(@ARGV);
+if ($ARGLEN < $NARG) { usage(); }
+my $Asiya_config = shift(@ARGV);
+
+# -- read config file --------------------------------------------------------------------------------
+my $CONFIG = Config::read_configuration_options($Asiya_config, \%options, \@metaevaluation_params, \@optimization_params);
+
+# -- process configuration options -------------------------------------------------------------------
+AsiyaAPI::process_configuration($CONFIG);
+
+

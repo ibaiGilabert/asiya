@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/MetaScoring
+END
+Consistency.pm
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/MetaScoring/Consistency.pm
+END
+LGPL.txt
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/MetaScoring/LGPL.txt
+END
+ULC.pm
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/MetaScoring/ULC.pm
+END
+Assessments.pm
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/MetaScoring/Assessments.pm
+END
+Statistics.pm
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/MetaScoring/Statistics.pm
+END
+MetaMetrics.pm
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/MetaScoring/MetaMetrics.pm
+END
+QARLA.pm
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/subversion/asiya/!svn/ver/1460/gpu/lib/IQ/MetaScoring/QARLA.pm
+END

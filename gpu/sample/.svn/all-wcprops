@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/subversion/asiya/!svn/ver/1460/gpu/sample
+END
+assessments.csv
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/subversion/asiya/!svn/ver/1460/gpu/sample/assessments.csv
+END
+runAll.sh
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/subversion/asiya/!svn/ver/1460/gpu/sample/runAll.sh
+END
+Asiya.config
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/subversion/asiya/!svn/ver/1460/gpu/sample/Asiya.config
+END
+examples.cmd
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/subversion/asiya/!svn/ver/1460/gpu/sample/examples.cmd
+END

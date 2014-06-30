@@ -1,0 +1,41 @@
+---
+abstract: ~
+author: []
+build_requires:
+  ExtUtils::MakeMaker: 0
+configure_requires:
+  ExtUtils::MakeMaker: 0
+distribution_type: module
+dynamic_config: 0
+generated_by: 'ExtUtils::MakeMaker version 6.57_05'
+license: unknown
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Asiya
+no_index:
+  directory:
+    - t
+    - inc
+requires:
+  Benchmark: 1.11
+  Data::Dumper: 2.126
+  File::Basename: 2.78
+  File::ReadBackwards: 1.04
+  Getopt::Long: 2.38
+  IO::File: 1.14
+  List::Util: 1.23
+  Modern::Perl: 1.03
+  SVMTool::COMMON: 1.3
+  Scalar::Util: 1.23
+  Statistics::Descriptive: 3.01
+  Statistics::Distributions: 1.02
+  Statistics::LSNoHistory: 0.01
+  Statistics::RankCorrelation: 0.113
+  Unicode::String: 2.09
+  XML::DOM: 1.44
+  XML::Parser: 2.36
+  XML::RegExp: 0.02
+  XML::Twig: 3.34
+  boolean: 0.23
+version: 3.0

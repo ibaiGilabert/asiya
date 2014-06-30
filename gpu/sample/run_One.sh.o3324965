@@ -1,0 +1,1 @@
+Asiya.pl Asiya.config -v -eval single -metric_set metric_BLEU -data_path /home/usuaris/gilabert/asiya/gpu/sample > BLEU.report
